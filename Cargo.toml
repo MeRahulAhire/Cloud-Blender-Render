@@ -4,3 +4,8 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+axum = { version = "0.8.3", features = ["multipart"] }
+axum_typed_multipart = "0.15.1"
+sanitize-filename = "0.6.0"
+tempfile = "3.19.1"
+tokio = { version = "1.44.2", features = ["full"] }
