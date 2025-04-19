@@ -16,7 +16,7 @@ pub struct UploadForm {
 pub async fn upload_blend_file_handler(
     TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
 ) -> impl IntoResponse {
-    let upload_dir = PathBuf::from("blend_file");
+    let upload_dir = PathBuf::from("blend-folder");
 
     // Create target directory, or return 500 on failure
     if !upload_dir.exists() {

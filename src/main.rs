@@ -1,23 +1,42 @@
-use axum::{extract::DefaultBodyLimit, routing::{get, post}, serve, Router};
 mod upload_blend_file;
+mod process_blend_file;
+
+use axum::{
+    Router,
+    extract::DefaultBodyLimit,
+    routing::{get, post},
+    serve,
+};
+use socketioxide::{SocketIo, extract::SocketRef};
+
+async fn hello_world() -> & 'static str {
+    "hello world"
+}
+
+async fn socket_handler (socket : SocketRef){
+
+    process_blend_file::process_blend_file_handler(&socket);
 
 
-async fn hello_world() -> &'static str {
-    "hello_world"
 }
 
 #[tokio::main]
 async fn main() {
+    println!("🌐  Server running on Port : 3000");
+
+    let (socket_layer, io) = SocketIo::new_layer();
+
+    io.ns("/", socket_handler);
+
     let app = Router::new()
-    .route("/", get(hello_world))
-    .route("/upload_blend_file", post(upload_blend_file::upload_blend_file_handler))
-    .layer(DefaultBodyLimit::max(20 * 1024 * 1024 *1024));
+        .route("/", get(hello_world))
+        .route(
+            "/upload_blend_file",
+            post(upload_blend_file::upload_blend_file_handler),
+        )
+        .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
+        .layer(socket_layer);
 
-
-
-    
-    let listner = tokio::net::TcpListener::bind("localhost:3000")
-        .await
-        .unwrap();
+    let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     serve(listner, app).await.unwrap();
 }
