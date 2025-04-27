@@ -1,5 +1,6 @@
-mod upload_blend_file;
+mod app_state_schema;
 mod process_blend_file;
+mod upload_blend_file;
 
 use axum::{
     Router,
@@ -9,15 +10,13 @@ use axum::{
 };
 use socketioxide::{SocketIo, extract::SocketRef};
 
-async fn hello_world() -> & 'static str {
+async fn hello_world() -> &'static str {
     "hello world"
 }
 
-async fn socket_handler (socket : SocketRef){
-
+async fn socket_handler(socket: SocketRef) {
+    //Run your blend file
     process_blend_file::process_blend_file_handler(&socket);
-
-
 }
 
 #[tokio::main]
@@ -36,7 +35,9 @@ async fn main() {
         )
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
         .layer(socket_layer);
+    // .layer(app_state_schema::schema_handler);
 
+    app_state_schema::schema_handler();
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     serve(listner, app).await.unwrap();
 }
