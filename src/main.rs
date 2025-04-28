@@ -1,6 +1,8 @@
-mod app_state_schema;
+mod db;
+// mod app_state_schema;
 mod process_blend_file;
 mod upload_blend_file;
+
 
 use axum::{
     Router,
@@ -34,10 +36,10 @@ async fn main() {
             post(upload_blend_file::upload_blend_file_handler),
         )
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
-        .layer(socket_layer);
-    // .layer(app_state_schema::schema_handler);
+        .layer(socket_layer) 
+        .layer(db::db_handler());
 
-    app_state_schema::schema_handler();
+    
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     serve(listner, app).await.unwrap();
 }

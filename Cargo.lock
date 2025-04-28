@@ -1325,6 +1325,8 @@ dependencies = [
  "num-bigint",
  "percent-encoding",
  "ryu",
+ "serde",
+ "serde_json",
  "sha1_smol",
  "socket2",
  "url",

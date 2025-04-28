@@ -12,7 +12,6 @@ pub struct UploadForm {
 }
 
 
-// }
 pub async fn upload_blend_file_handler(
     TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
 ) -> impl IntoResponse {
@@ -31,23 +30,39 @@ pub async fn upload_blend_file_handler(
         }
     }
 
+    if fs::read_dir(&upload_dir)
+        .ok()
+        .and_then(|mut entries| {
+            entries.find_map(|entry| {
+                entry
+                    .ok()
+                    .and_then(|e| e.file_type().ok().filter(|ft| ft.is_file()))
+            })
+        })
+        .is_some(){
+        return (
+            StatusCode::BAD_REQUEST,
+            "File already exists. Try deleting it before uploading.".to_string(),
+        );
+    }
+
     // Derive the original filename (fallback to "upload.blend")
-    let original_name = file
-        .metadata
-        .file_name
-        .as_deref()
-        .unwrap_or("upload.blend");
+    let original_name = file.metadata.file_name.as_deref().unwrap_or("upload.blend");
     let safe_name = sanitize(original_name);
+
     let target_path = upload_dir.join(safe_name);
 
     // Persist temp file to our uploads directory
     if let Err(e) = file.contents.persist(&target_path) {
         return (
-            StatusCode::INTERNAL_SERVER_ERROR,
+            StatusCode::EXPECTATION_FAILED,
             format!("Failed to persist file: {}", e),
         );
     }
 
     // Success
-    (StatusCode::OK, "Blend file uploaded successfully".to_string())
+    (
+        StatusCode::OK,
+        "Blend file uploaded successfully".to_string(),
+    )
 }
