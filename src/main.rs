@@ -1,14 +1,10 @@
 mod db;
-// mod app_state_schema;
 mod process_blend_file;
 mod upload_blend_file;
 
 
 use axum::{
-    Router,
-    extract::DefaultBodyLimit,
-    routing::{get, post},
-    serve,
+    extract::DefaultBodyLimit, middleware, routing::{get, post}, serve, Router
 };
 use socketioxide::{SocketIo, extract::SocketRef};
 
@@ -33,7 +29,7 @@ async fn main() {
         .route("/", get(hello_world))
         .route(
             "/upload_blend_file",
-            post(upload_blend_file::upload_blend_file_handler),
+            post(upload_blend_file::upload_blend_file_handler).route_layer(middleware::from_fn(upload_blend_file::upload_middleware)),
         )
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
         .layer(socket_layer) 
