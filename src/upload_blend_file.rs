@@ -1,10 +1,11 @@
 use axum::{
-    body::Body, extract::FromRequest, http::{Request, StatusCode}, middleware::Next, response::{IntoResponse, Response}
+    http::StatusCode,
+    response::IntoResponse,
 };
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
-use file_format::FileFormat;
+use regex::Regex;
 use sanitize_filename::sanitize;
-use std::{fs, io::Read, path::PathBuf};
+use std::{fs, path::PathBuf};
 use tempfile::NamedTempFile;
 
 #[derive(TryFromMultipart)]
@@ -15,11 +16,12 @@ pub struct UploadForm {
 }
 
 
-pub async fn upload_middleware(
-    req: Request<Body>,
-    next: Next,
-    // TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
-) -> Response {
+pub async fn upload_blend_file_handler(
+    TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
+    // mut multipart : Multipart
+) -> impl IntoResponse {
+    
+    
     // 1. Check if blend-file exist. If not then create it.
     let upload_dir = PathBuf::from("blend-folder");
     if !upload_dir.exists() {
@@ -27,8 +29,7 @@ pub async fn upload_middleware(
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Failed to create upload directory. Error : {}", e),
-            )
-                .into_response();
+            );
         }
     }
 
@@ -42,75 +43,27 @@ pub async fn upload_middleware(
                     .and_then(|e| e.file_type().ok().filter(|ft| ft.is_file()))
             })
         })
-        .is_some()
-    {
+        .is_some(){
         return (
             StatusCode::BAD_REQUEST,
             "File already exists. Try deleting it before uploading.".to_string(),
-        )
-            .into_response();
+        );
     }
-
-    // 3. Check if user is indeed trying to upload .blend file
-    // let original_name = file.metadata.file_name.as_deref().unwrap_or("upload.blend");
-    // let safe_name = sanitize(original_name);
-
-    // let (mut parts, body) = req.into_parts();
-
-    // 2. Run the TypedMultipart extractor on the parts (this will buffer the multipart
-    //    and write streams to a NamedTempFile for you).
-    let TypedMultipart(UploadForm { file }) =
-        match TypedMultipart::<UploadForm>::from_request(req, &()).await
-        {
-            Ok(mp) => mp,
-            Err(err) => return err.into_response(),
-        };
-
-    let mut temp = match file.contents.reopen() {
-        Ok(f) => f,
-        Err(_) => {
-            return (
-                StatusCode::BAD_REQUEST,
-                "Cannot reopen temp file".to_string(),
-            )
-                .into_response();
-        }
-    };
-
-    let mut header = [0u8; 16];
-    if let Err(_) = temp.read_exact(&mut header) {
-        return (
-            StatusCode::BAD_REQUEST,
-            "Failed to read file header".to_string(),
-        )
-            .into_response();
-    }
-
-    let format = FileFormat::from_bytes(&header);
-    if format.extension() != "blend" {
-        return (
-            StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            format!(
-                "Unsupported file type: expected .blend, got .{}",
-                format.extension()
-            ),
-        )
-            .into_response();
-    }
-
-    next.run(req).await
-}
-
-pub async fn upload_blend_file_handler(
-    TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
-) -> impl IntoResponse {
-    let upload_dir = PathBuf::from("blend-folder");
+    // 3. Check if the upload file is .blend and then only upload it. 
 
     // Derive the original filename (fallback to "upload.blend")
     let original_name = file.metadata.file_name.as_deref().unwrap_or("upload.blend");
     let safe_name = sanitize(original_name);
 
-    let target_path = upload_dir.join(safe_name);
+    if !is_blend_file(&safe_name) {
+        return (
+            StatusCode::UNSUPPORTED_MEDIA_TYPE,
+            format!("We only except .blend file. Please try again"),
+        );
+    }
+    
+
+    let target_path = upload_dir.join(&safe_name);
 
     // Persist temp file to our uploads directory
     if let Err(e) = file.contents.persist(&target_path) {
@@ -125,4 +78,10 @@ pub async fn upload_blend_file_handler(
         StatusCode::OK,
         "Blend file uploaded successfully".to_string(),
     )
+}
+
+// A regex function to check if the file is .blend file
+fn is_blend_file(file_name: &str) -> bool {
+    let re = Regex::new(r"(?i)\.blend$").unwrap();
+    re.is_match(file_name)
 }
