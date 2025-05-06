@@ -6,6 +6,9 @@ edition = "2024"
 [dependencies]
 axum = { version = "0.8.3", features = ["multipart"] }
 axum_typed_multipart = "0.15.1"
+base64 = "0.22.1"
+image2 = "1.9.2"
+notify = { version = "8.0.0", features = ["serde"] }
 redis = { version = "0.30.0", features = ["json"] }
 regex = "1.11.1"
 sanitize-filename = "0.6.0"

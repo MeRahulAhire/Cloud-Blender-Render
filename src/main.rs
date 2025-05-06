@@ -1,6 +1,7 @@
 mod db;
 mod process_blend_file;
 mod upload_blend_file;
+mod live_image_preview;
 
 
 use axum::{
@@ -15,6 +16,9 @@ async fn hello_world() -> &'static str {
 async fn socket_handler(socket: SocketRef) {
     //Run your blend file
     process_blend_file::process_blend_file_handler(&socket);
+
+    // Live Image Preview
+    live_image_preview::live_image_preview_handler(&socket);
 }
 
 #[tokio::main]
@@ -32,8 +36,13 @@ async fn main() {
             post(upload_blend_file::upload_blend_file_handler),
         )
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
-        .layer(socket_layer) 
+        .layer(socket_layer)
         .layer(db::db_handler());
+
+    
+    // if let Err(e) = live_image_preview::live_image_preview_handler(){
+    //     println!("Error happened - {}", e)
+    // }
 
     
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();

@@ -38,7 +38,7 @@ pub fn process_blend_file_handler(socket: &SocketRef) {
                 if let Some(out) = child.stdout.take() {
                     let reader = BufReader::new(out);
                     for line in reader.lines().flatten() {
-                        println!("{}", line);
+                        // println!("{}", line);
                         let payload = json!({ "line": line });
                         if let Err(err) = sock.emit("blend-process", &payload) {
                             eprintln!("Emit error: {:?}", err);
