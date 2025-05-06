@@ -9,11 +9,12 @@ use std::fs;
 use image2::{Image, Rgba};
 use base64::{engine::general_purpose, Engine as _};
 use socketioxide::extract::SocketRef;
+use serde_json::json;
 
-pub fn live_image_preview_handler(socket: &SocketRef) {
+pub fn live_image_preview_handler(socket: SocketRef) {
 
     thread::spawn( move || {
-        let sock = socket.clone();
+        let sock = socket;
         let (tx, rx) = channel();
 
         let mut watcher = RecommendedWatcher::new(tx, Config::default()).unwrap();
@@ -62,9 +63,14 @@ pub fn image_resize_and_stream (name : &str, sock: &SocketRef) {
     
     let base64_string = general_purpose::STANDARD.encode(sample_image_data);
 
-    println!("Base64 = {}", base64_string);
+    // println!("Base64 = {}", base64_string);
+    let live_image_data = json!({
+        "imageName" : &name,
+        "imagePrefix" : "data:image/png;base64",
+        "base64String" : base64_string
+    });
 
-    if let Err(err) = sock.emit("live-base64", &base64_string) {
+    if let Err(err) = sock.emit("live-base64", &live_image_data) {
         eprintln!("Emit error: {:?}", err);
     }
 

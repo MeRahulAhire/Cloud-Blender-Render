@@ -1,13 +1,15 @@
 mod db;
+mod live_image_preview;
 mod process_blend_file;
 mod upload_blend_file;
-mod live_image_preview;
-
 
 use axum::{
-    extract::DefaultBodyLimit, routing::{get, post}, serve, Router
+    Router,
+    extract::DefaultBodyLimit,
+    routing::{get, post},
+    serve,
 };
-use socketioxide::{SocketIo, extract::SocketRef};
+use socketioxide::{SocketIoBuilder, extract::SocketRef};
 
 async fn hello_world() -> &'static str {
     "hello world"
@@ -18,14 +20,16 @@ async fn socket_handler(socket: SocketRef) {
     process_blend_file::process_blend_file_handler(&socket);
 
     // Live Image Preview
-    live_image_preview::live_image_preview_handler(&socket);
+    live_image_preview::live_image_preview_handler(socket.clone());
 }
 
 #[tokio::main]
 async fn main() {
     println!("🌐  Server running on Port : 3000");
 
-    let (socket_layer, io) = SocketIo::new_layer();
+    let (socket_layer, io) = SocketIoBuilder::new()
+        .max_payload(20_000_000)
+        .build_layer();
 
     io.ns("/", socket_handler);
 
@@ -39,12 +43,6 @@ async fn main() {
         .layer(socket_layer)
         .layer(db::db_handler());
 
-    
-    // if let Err(e) = live_image_preview::live_image_preview_handler(){
-    //     println!("Error happened - {}", e)
-    // }
-
-    
     let listner = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     serve(listner, app).await.unwrap();
 }
