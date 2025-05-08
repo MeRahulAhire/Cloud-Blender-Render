@@ -4,13 +4,21 @@ use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread;
+use redis::{Client, JsonCommands};
 
 pub fn process_blend_file_handler(socket: &SocketRef) {
     // Pre-compute PathBufs so they can be cloned into the closure
+    let client = Client::open("redis://127.0.0.1:6379/").unwrap();
+    let mut con = client.get_connection().unwrap();
+
+    let blend_file: String = con.json_get("items", "$.blend_file.file_name").unwrap();
+
     let blend_path = PathBuf::from("blend-folder").join("sample.blend");
     let blender_bin = PathBuf::from("blender/blender");
 
     socket.on("post-json", {
+        println!("{:?}", blend_file.get);
+
         let blend_path = blend_path.clone();
         let blender_bin = blender_bin.clone();
         move |socket: SocketRef, Data::<serde_json::Value>(_data)| {

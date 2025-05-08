@@ -9,7 +9,6 @@ pub fn db_handler() {
     }
 }
 
-
 pub fn update(data: Value) -> RedisResult<()>{
     let client = Client::open("redis://127.0.0.1:6379/")?;
     let mut con = client.get_connection()?;
@@ -18,3 +17,4 @@ pub fn update(data: Value) -> RedisResult<()>{
 
     Ok(())
 }
+

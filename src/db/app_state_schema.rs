@@ -2,6 +2,8 @@
 use redis::{Client, JsonCommands, RedisResult};
 use serde_json::json;
 
+// use crate::db::db_connection
+
 pub fn schema_handler() -> RedisResult<()> {
     // sync connection
     let client = Client::open("redis://127.0.0.1:6379/")?;
@@ -46,3 +48,4 @@ pub fn schema_handler() -> RedisResult<()> {
 
     Ok(())
 }
+
