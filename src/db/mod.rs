@@ -9,7 +9,7 @@ pub fn db_handler() {
     }
 }
 
-pub fn update(data: Value) -> RedisResult<()>{
+pub fn update(data: Value) -> RedisResult<()> {
     let client = Client::open("redis://127.0.0.1:6379/")?;
     let mut con = client.get_connection()?;
 
@@ -18,9 +18,7 @@ pub fn update(data: Value) -> RedisResult<()>{
     Ok(())
 }
 
-
-pub fn get_data (path: &str) {
-
+pub fn get_data(path: &str) -> String {
     let client = Client::open("redis://127.0.0.1:6379/").unwrap();
     let mut con = client.get_connection().unwrap();
 
@@ -28,12 +26,17 @@ pub fn get_data (path: &str) {
 
     let raw: String = con.json_get("items", item_path).unwrap();
 
-    // 2. Parse into serde_json::Value
+    // Parse into serde_json::Value
     let v: Value = serde_json::from_str(&raw).unwrap();
 
-    // 3. Navigate the array/object
-    let file_name = v[0].as_str().unwrap();
+    // Extract the first value (assuming it's an array of one value as per your JSONPath usage)
+    let first_val = &v[0];
 
-    file_name.to_string();
-
+    match first_val {
+        Value::String(s) => s.clone(),
+        Value::Bool(b) => b.to_string(),
+        Value::Number(n) => n.to_string(),
+        Value::Null => "null".to_string(),
+        _ => panic!("Unsupported type encountered"),
+    }
 }
