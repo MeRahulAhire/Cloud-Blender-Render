@@ -1,26 +1,36 @@
-use serde_json::json;
+use redis::{Client, JsonCommands};
+use serde_json::{Value, json};
 use socketioxide::extract::{Data, SocketRef};
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread;
-use redis::{Client, JsonCommands};
+use crate::db::get_data;
+
+
 
 pub fn process_blend_file_handler(socket: &SocketRef) {
     // Pre-compute PathBufs so they can be cloned into the closure
     let client = Client::open("redis://127.0.0.1:6379/").unwrap();
     let mut con = client.get_connection().unwrap();
 
-    let blend_file: String = con.json_get("items", "$.blend_file.file_name").unwrap();
+    // let raw: String = con.json_get("items", "$.blend_file.file_name").unwrap();
 
-    let blend_path = PathBuf::from("blend-folder").join("sample.blend");
-    let blender_bin = PathBuf::from("blender/blender");
+    // // 2. Parse into serde_json::Value
+    // let v: Value = serde_json::from_str(&raw).unwrap();
 
+    // // 3. Navigate the array/object
+    // let file_name = v[0].as_str().unwrap();
+
+    
     socket.on("post-json", {
-        println!("{:?}", blend_file.get);
+        println!("{}", file_name);
+        let blend_path = PathBuf::from("blend-folder").join(&file_name);
+        let blender_bin = PathBuf::from("blender/blender");
+        
+        // let blend_process_status: String = con.json_get("items", "$.render_status").unwrap();
 
-        let blend_path = blend_path.clone();
-        let blender_bin = blender_bin.clone();
+
         move |socket: SocketRef, Data::<serde_json::Value>(_data)| {
             // Clone the socket for the background thread
             let sock = socket.clone();
