@@ -7,25 +7,34 @@ use std::process::{Command, Stdio};
 use std::thread;
 
 pub fn process_blend_file_handler(socket: &SocketRef) {
-    let file_name = get_data("blend_file.file_name");
-
-
+    
+    
     socket.on("blend-engine", {
-        println!("{:?}", file_name);
-        let blend_path = PathBuf::from("blend-folder").join(file_name);
-        let blender_bin = PathBuf::from("blender/blender");
-
-        let blend_process_status = get_data("render_status.is_rendering");
-
-        // println!("{}", blend_process_status);
-
+        
         move |socket: SocketRef, Data::<Value>(data)| {
+            let file_name = get_data("blend_file.file_name");
+            let blend_path = PathBuf::from("blend-folder").join(&file_name);
+            let blender_bin = PathBuf::from("blender/blender");
+            
+            let blend_process_status = get_data("render_status.is_rendering");
+            let blend_file_exist = get_data("blend_file.is_present");
+            
+            println!("{:?}", &file_name);
+            println!("{}", blend_file_exist);
             // Clone the socket for the background thread
             let sock = socket.clone();
 
-            if blend_process_status == "false".to_string() {
+            if blend_process_status == "true" {
                 if let Err(err) = sock.emit("blend-engine-error", "Blender is already running. Cannot run duplicate task") {
                     eprintln!("Emit error: {:?}", err);
+                    eprintln!("Blend_process_status - {}", err);
+                };
+            }
+
+            if blend_file_exist == "false" {
+                if let Err(err) = sock.emit("blend-engine-error", "Blend file not exist. Please upload it first") {
+                    eprintln!("Emit error: {:?}", err);
+                    eprintln!("Blend_process_status - {}", err);
                 };
             }
 
@@ -50,14 +59,17 @@ pub fn process_blend_file_handler(socket: &SocketRef) {
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| {
                     println!("blender-query' key not found or not a string");
-                    if let Err(err) = sock.emit("blend-engine-error", "Warning ⚠️ - Engine format and its related details are not provided. Default settings will be applied") {
+                    if let Err(err) = sock.emit("blend-engine-error", "Warning ⚠️ - Engine format and its related details are not provided. Default settings will be applied. Error Message - {err}") {
                         eprintln!("Emit error: {:?}", err);
                     };
                     "".to_string()
                     
                 });
-
-                render_task(&blender_bin, &blend_path, &blender_query, sock)
+                render_task(&blender_bin, &blend_path, &blender_query, sock.clone());
+                // else{
+                
+                //     return;
+                // };
 
             // Spawn a thread so we don't block the socket handler
             // thread::spawn(move || {
@@ -103,14 +115,19 @@ pub fn process_blend_file_handler(socket: &SocketRef) {
 }
 
 
-pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query : &str, sock: SocketRef) {
+pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query : &str, sock : SocketRef) {
+
+    let blender_bin = blender_bin.clone();
+    let blend_path = blend_path.clone();
+    let blender_query = blender_query.to_string();
+    
     thread::spawn(move || {
         let mut child = Command::new(&blender_bin)
             .arg("-b")
             .arg(&blend_path)
             .arg("-o")
             .arg("./output/")
-            .arg(blender_query)
+            .args(blender_query.split_whitespace())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
