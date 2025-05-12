@@ -1,5 +1,5 @@
 mod app_state_schema;
-use redis::{Client, JsonCommands, RedisResult};
+use redis::{Client, JsonCommands, RedisResult, RedisError};
 use serde_json::Value;
 
 pub fn db_handler() {
@@ -9,11 +9,30 @@ pub fn db_handler() {
     }
 }
 
+// pub fn update(data: Value) -> RedisResult<()> {
+//     let client = Client::open("redis://127.0.0.1:6379/")?;
+//     let mut con = client.get_connection()?;
+
+//     let _: () = con.json_set("items", "$", &data)?;
+
+//     Ok(())
+// }
+
 pub fn update(data: Value) -> RedisResult<()> {
     let client = Client::open("redis://127.0.0.1:6379/")?;
     let mut con = client.get_connection()?;
 
-    let _: () = con.json_set("items", "$", &data)?;
+    if let Value::Object(map) = data {
+        for (key, value) in map {
+            let path = format!("$.{}", key);
+            let _: () = con.json_set("items", &path, &value)?;
+        }
+    } else {
+        return Err(RedisError::from((
+            redis::ErrorKind::TypeError,
+            "Expected JSON object at top level",
+        )));
+    }
 
     Ok(())
 }
