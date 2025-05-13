@@ -1,4 +1,4 @@
-use crate::db::get_data;
+use crate::db::{update, get_data};
 use serde_json::{Value, json};
 use socketioxide::extract::{Data, SocketRef};
 use std::io::{BufRead, BufReader};
@@ -19,8 +19,8 @@ pub fn process_blend_file_handler(socket: &SocketRef) {
             let blend_process_status = get_data("render_status.is_rendering");
             let blend_file_exist = get_data("blend_file.is_present");
             
-            println!("{:?}", &file_name);
-            println!("{}", blend_file_exist);
+            // println!("{:?}", &file_name);
+            // println!("{}", blend_file_exist);
             // Clone the socket for the background thread
             let sock = socket.clone();
 
@@ -65,51 +65,14 @@ pub fn process_blend_file_handler(socket: &SocketRef) {
                     "".to_string()
                     
                 });
+
+            if blend_file_exist == "true" && blend_process_status == "false" {
+
                 render_task(&blender_bin, &blend_path, &blender_query, sock.clone());
-                // else{
+            }
+
+
                 
-                //     return;
-                // };
-
-            // Spawn a thread so we don't block the socket handler
-            // thread::spawn(move || {
-            //     let mut child = Command::new(&blender_bin)
-            //         .arg("-b")
-            //         .arg(&blend_path)
-            //         .arg("-o")
-            //         .arg("./output/")
-            //         .arg(blender_query)
-            //         .stdout(Stdio::piped())
-            //         .stderr(Stdio::piped())
-            //         .spawn()
-            //         .expect("Failed to start Blender process");
-
-            //     // Read Blender's stdout and emit each line
-            //     if let Some(out) = child.stdout.take() {
-            //         let reader = BufReader::new(out);
-            //         for line in reader.lines().flatten() {
-            //             // println!("{}", line);
-            //             let payload = json!({ "line": line });
-            //             if let Err(err) = sock.emit("blend-process", &payload) {
-            //                 eprintln!("Emit error: {:?}", err);
-            //             }
-            //         }
-            //     }
-
-            //     // Optionally read stderr as well
-            //     if let Some(err_out) = child.stderr.take() {
-            //         let reader = BufReader::new(err_out);
-            //         for line in reader.lines().flatten() {
-            //             eprintln!("BLENDER ERR: {}", line);
-            //             let payload = json!({ "error": line });
-            //             let _ = sock.emit("blend-process", &payload);
-            //         }
-            //     }
-
-            //     // Wait for Blender to finish
-            //     let status = child.wait().expect("Blender process failed");
-            //     println!("Blender exited with status: {:?}", status);
-            // });
         }
     });
 }
@@ -120,6 +83,14 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
     let blender_bin = blender_bin.clone();
     let blend_path = blend_path.clone();
     let blender_query = blender_query.to_string();
+
+    let set_render_true = json!({
+        "render_status" : {
+        "is_rendering" : true
+      }
+    });
+
+    update(set_render_true).unwrap();
     
     thread::spawn(move || {
         let mut child = Command::new(&blender_bin)
@@ -156,6 +127,15 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
         }
 
         // Wait for Blender to finish
+        let set_render_false = json!({
+            "render_status" : {
+            "is_rendering" : false
+          }
+        });
+    
+        update(set_render_false).unwrap();
+        
+
         let status = child.wait().expect("Blender process failed");
         println!("Blender exited with status: {:?}", status);
     });
