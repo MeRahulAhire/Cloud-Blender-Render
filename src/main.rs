@@ -11,13 +11,14 @@ use axum::{
 };
 use socketioxide::{SocketIoBuilder, extract::SocketRef};
 
+
 async fn hello_world() -> &'static str {
     "hello world"
 }
 
 async fn socket_handler(socket: SocketRef) {
     //Run your blend file
-    process_blend_file::process_blend_file_handler(&socket);
+    process_blend_file::start_render(&socket);
 
     // Live Image Preview
     live_image_preview::live_image_preview_handler(socket.clone());
@@ -39,6 +40,7 @@ async fn main() {
             "/upload_blend_file",
             post(upload_blend_file::upload_blend_file_handler),
         )
+        .route("/stop-render", post(process_blend_file::stop_render))
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
         .layer(socket_layer)
         .layer(db::db_handler());

@@ -5,8 +5,15 @@ use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread;
+use std::sync::Mutex;
+use std::process::Child;
+use once_cell::sync::Lazy;
+use axum::{http::StatusCode, response::{IntoResponse, Json}};
 
-pub fn process_blend_file_handler(socket: &SocketRef) {
+static BLENDER_PROCESS: Lazy<Mutex<Option<Child>>> = Lazy::new(|| Mutex::new(None));
+
+
+pub fn start_render(socket: &SocketRef) {
     
     
     socket.on("blend-engine", {
@@ -93,7 +100,7 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
     update(set_render_true).unwrap();
     
     thread::spawn(move || {
-        let mut child = Command::new(&blender_bin)
+        let child = Command::new(&blender_bin)
             .arg("-b")
             .arg(&blend_path)
             .arg("-o")
@@ -104,8 +111,13 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
             .spawn()
             .expect("Failed to start Blender process");
 
+            {
+                let mut proc_guard = BLENDER_PROCESS.lock().unwrap();
+                *proc_guard = Some(child);
+            }
+
         // Read Blender's stdout and emit each line
-        if let Some(out) = child.stdout.take() {
+        if let Some(out) = BLENDER_PROCESS.lock().unwrap().as_mut().and_then(|c| c.stdout.take()) {
             let reader = BufReader::new(out);
             for line in reader.lines().flatten() {
                 // println!("{}", line);
@@ -117,7 +129,7 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
         }
 
         // Optionally read stderr as well
-        if let Some(err_out) = child.stderr.take() {
+        if let Some(err_out) = BLENDER_PROCESS.lock().unwrap().as_mut().and_then(|c| c.stderr.take()){
             let reader = BufReader::new(err_out);
             for line in reader.lines().flatten() {
                 eprintln!("BLENDER ERR: {}", line);
@@ -136,7 +148,40 @@ pub fn render_task (blender_bin : &PathBuf, blend_path: &PathBuf, blender_query 
         update(set_render_false).unwrap();
         
 
-        let status = child.wait().expect("Blender process failed");
-        println!("Blender exited with status: {:?}", status);
+        // let status = child.wait().expect("Blender process failed");
+        // Wait for completion
+        let exit_status = {
+            let mut proc_guard = BLENDER_PROCESS.lock().unwrap();
+            if let Some(child) = proc_guard.as_mut() {
+                child.wait().ok()
+            } else {
+                None
+            }
+        };
+
+        println!("Blender exited with status: {:?}", exit_status);
     });
+}
+
+
+pub async fn stop_render() -> impl IntoResponse {
+    let mut proc_guard = BLENDER_PROCESS.lock().unwrap();
+
+    let (status, message) = if let Some(child) = proc_guard.as_mut() {
+        match child.kill() {
+            Ok(_) => (StatusCode::OK, "Blender process killed."),
+            Err(e) => (StatusCode::INTERNAL_SERVER_ERROR, &*format!("Failed to kill Blender process: {}", e)),
+        }
+    } else {
+        (StatusCode::BAD_REQUEST, "No Blender process is currently running.")
+    };
+
+    *proc_guard = None;
+
+    let body = Json(json!({
+        "status": status.as_u16(),
+        "message": message,
+    }));
+
+    (status, body)
 }
