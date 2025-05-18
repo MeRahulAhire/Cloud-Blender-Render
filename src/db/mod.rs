@@ -1,5 +1,5 @@
 mod app_state_schema;
-use redis::{Client, JsonCommands, RedisResult, RedisError};
+use redis::{ Client, JsonCommands, RedisError, RedisResult };
 use serde_json::Value;
 
 pub fn db_handler() {
@@ -8,15 +8,6 @@ pub fn db_handler() {
         println!("⚠️  Failed to initialize Redis schema: {}", e);
     }
 }
-
-// pub fn update(data: Value) -> RedisResult<()> {
-//     let client = Client::open("redis://127.0.0.1:6379/")?;
-//     let mut con = client.get_connection()?;
-
-//     let _: () = con.json_set("items", "$", &data)?;
-
-//     Ok(())
-// }
 
 pub fn update(data: Value) -> RedisResult<()> {
     let client = Client::open("redis://127.0.0.1:6379/")?;
@@ -28,10 +19,9 @@ pub fn update(data: Value) -> RedisResult<()> {
             let _: () = con.json_set("items", &path, &value)?;
         }
     } else {
-        return Err(RedisError::from((
-            redis::ErrorKind::TypeError,
-            "Expected JSON object at top level",
-        )));
+        return Err(
+            RedisError::from((redis::ErrorKind::TypeError, "Expected JSON object at top level"))
+        );
     }
 
     Ok(())

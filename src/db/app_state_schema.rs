@@ -40,7 +40,6 @@ pub fn schema_handler() -> RedisResult<()> {
       "render_status" : {
         "is_rendering" : false
       },
-      "rendered_images" : [],
       "latest_preview_image" :""
     });
 

@@ -2,6 +2,7 @@ mod db;
 mod live_image_preview;
 mod process_blend_file;
 mod upload_blend_file;
+mod delete_blend_file;
 
 use axum::{
     Router,
