@@ -15,7 +15,7 @@ pub struct UploadForm {
     file: FieldData<NamedTempFile>,
 }
 
-pub async fn upload_blend_file_handler(
+pub async fn upload_handler(
     TypedMultipart(UploadForm { file }): TypedMultipart<UploadForm>,
     // mut multipart : Multipart
 ) -> impl IntoResponse {
@@ -80,7 +80,7 @@ pub async fn upload_blend_file_handler(
         },
 
           });
-          if let Err(e) = update(data) {
+        if let Err(e) = update(data) {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
                 format!("Failed to update Redis: {}", e),

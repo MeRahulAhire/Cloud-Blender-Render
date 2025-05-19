@@ -3,6 +3,7 @@ mod live_image_preview;
 mod process_blend_file;
 mod upload_blend_file;
 mod delete_blend_file;
+mod render_image_list;
 
 use axum::{
     Router,
@@ -39,9 +40,11 @@ async fn main() {
         .route("/", get(hello_world))
         .route(
             "/upload_blend_file",
-            post(upload_blend_file::upload_blend_file_handler),
+            post(upload_blend_file::upload_handler),
         )
-        .route("/stop-render", post(process_blend_file::stop_render))
+        .route("/delete_blend_file", post(delete_blend_file::delete_handler))
+        .route("/stop_render", post(process_blend_file::stop_render))
+        .route("/render_list", post(render_image_list::get_images_list))
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
         .layer(socket_layer)
         .layer(db::db_handler());

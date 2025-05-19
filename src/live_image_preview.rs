@@ -1,19 +1,15 @@
 use crate::db::update;
-use base64::{ Engine as _, engine::general_purpose };
-use file_format::{ FileFormat, Kind };
-use image2::{ Image, Rgba };
+use base64::{Engine as _, engine::general_purpose};
+use file_format::{FileFormat, Kind};
+use image2::{Image, Rgba};
 use notify::{
-    Config,
-    EventKind,
-    RecommendedWatcher,
-    RecursiveMode,
-    Watcher,
-    event::{ AccessKind, AccessMode },
+    Config, EventKind, RecommendedWatcher, RecursiveMode, Watcher,
+    event::{AccessKind, AccessMode},
 };
 use serde_json::json;
 use socketioxide::extract::SocketRef;
 use std::fs;
-use std::path::{ Path, PathBuf };
+use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::thread;
 
@@ -23,7 +19,9 @@ pub fn live_image_preview_handler(socket: SocketRef) {
         let (tx, rx) = channel();
 
         let mut watcher = RecommendedWatcher::new(tx, Config::default()).unwrap();
-        watcher.watch(Path::new("./output"), RecursiveMode::NonRecursive).unwrap();
+        watcher
+            .watch(Path::new("./output"), RecursiveMode::NonRecursive)
+            .unwrap();
 
         for res in rx {
             match res {
@@ -53,8 +51,7 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     // println!("image kind is - {:?}", image_kind);
 
     if image_kind != Kind::Image {
-        if
-            let Err(err) = sock.emit(
+        if let Err(err) = sock.emit(
                 "live-base64-error",
                 "Live render preview only supported on image. Select render output type to image format"
             )
@@ -68,10 +65,8 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     let original_height = size.height;
 
     let new_height = 720;
-    let new_width = (
-        ((original_width as f64) / (original_height as f64)) *
-        (new_height as f64)
-    ).round() as usize;
+    let new_width = (((original_width as f64) / (original_height as f64)) * (new_height as f64))
+        .round() as usize;
 
     let resized_image = image.resize((new_width, new_height));
     resized_image.save("./temp/sample.png").unwrap();
@@ -84,8 +79,7 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     let image_string = format!("{},{}", png_mime, base64_string);
 
     // println!("Base64 = {}", base64_string);
-    let live_image_data =
-        json!({
+    let live_image_data = json!({
         "image_name" : &name,
         "image_string" : &image_string
     });

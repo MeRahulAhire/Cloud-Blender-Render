@@ -7,7 +7,7 @@ use std::path::PathBuf;
 use std::process::{ Command, Stdio };
 use std::thread;
 use std::sync::atomic::{ AtomicU32, Ordering };
-use axum::{ http::StatusCode, response::{ IntoResponse, Json } };
+use axum::{ http::StatusCode, response::IntoResponse };
 use nix::sys::signal::{ kill, Signal::SIGTERM };
 
 static CHILD_PID: AtomicU32 = AtomicU32::new(0);
@@ -128,7 +128,6 @@ pub fn render_task(
             .spawn()
             .expect("Failed to start Blender process");
 
-        
         CHILD_PID.store(child.id(), Ordering::Relaxed);
 
         // Read Blender's stdout and emit each line
@@ -179,25 +178,20 @@ pub async fn stop_render() -> impl IntoResponse {
 
     // If no PID has been set yet, return 400 Bad Request with a JSON error
     if pid == 0 {
-        let data = json!({ "success": false, "error": "No render task are active" });
-        return (StatusCode::BAD_REQUEST, Json(data));
+        return (StatusCode::BAD_REQUEST, "No render task are active".to_string());
     }
 
     // Attempt to send SIGTERM
     let target = Pid::from_raw(pid as i32);
-    let data = match kill(target, SIGTERM) {
-        Ok(()) => { json!({ "success": true, "message": "Blender exited successfully" }) }
+    let (data, status) = match kill(target, SIGTERM) {
+        Ok(()) => { ("Blender exited successfully".to_string(), StatusCode::OK) }
         Err(err) => {
-            json!({ "success": false, "error": format!("Failed to cancel render. Please try again. Error message : {}", err) })
+            (
+                format!("Failed to cancel render. Please try again. Error message : {}", err),
+                StatusCode::INTERNAL_SERVER_ERROR        
+            )
         }
     };
 
-    // Determine status code based on success flag
-    let status = if data.get("success").and_then(|v| v.as_bool()) == Some(true) {
-        StatusCode::OK
-    } else {
-        StatusCode::INTERNAL_SERVER_ERROR
-    };
-
-    (status, Json(data))
+    (status, data)
 }
