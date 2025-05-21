@@ -1,17 +1,17 @@
 mod db;
+mod delete_blend_file;
 mod live_image_preview;
 mod process_blend_file;
-mod upload_blend_file;
-mod delete_blend_file;
 mod render_image_list;
+mod upload_blend_file;
+mod get_blend_file;
+
 
 use axum::{
-    Router,
-    extract::DefaultBodyLimit,
-    routing::{get, post},
-    serve,
+    extract::DefaultBodyLimit, routing::{get, get_service, post}, serve, Router
 };
 use socketioxide::{SocketIoBuilder, extract::SocketRef};
+use tower_http::services::ServeDir;
 
 
 async fn hello_world() -> &'static str {
@@ -30,21 +30,27 @@ async fn socket_handler(socket: SocketRef) {
 async fn main() {
     println!("🌐  Server running on Port : 3000");
 
-    let (socket_layer, io) = SocketIoBuilder::new()
-        .max_payload(20_000_000)
-        .build_layer();
+    let (socket_layer, io) = SocketIoBuilder::new().max_payload(20_000_000).build_layer();
 
     io.ns("/", socket_handler);
 
+    
+
     let app = Router::new()
         .route("/", get(hello_world))
+        .route("/get_blend_file", post(get_blend_file::blend_file_exist))
         .route(
             "/upload_blend_file",
             post(upload_blend_file::upload_handler),
         )
-        .route("/delete_blend_file", post(delete_blend_file::delete_handler))
+        .route(
+            "/delete_blend_file",
+            post(delete_blend_file::delete_handler),
+        )
+        .route("/get_db", post(db::get_app_state::get_db))
         .route("/stop_render", post(process_blend_file::stop_render))
         .route("/render_list", post(render_image_list::get_images_list))
+        .nest_service("/images", get_service(ServeDir::new("./output")))
         .layer(DefaultBodyLimit::max(20 * 1024 * 1024 * 1024))
         .layer(socket_layer)
         .layer(db::db_handler());

@@ -75,7 +75,6 @@ pub async fn upload_handler(
         let data = json!({
           "blend_file" : {
           "is_present" : true,
-          "display_name" : &original_name,
           "file_name" : &safe_name,
         },
 

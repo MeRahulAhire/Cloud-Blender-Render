@@ -1,6 +1,7 @@
 mod app_state_schema;
 use redis::{ Client, JsonCommands, RedisError, RedisResult };
 use serde_json::Value;
+pub mod get_app_state;
 
 pub fn db_handler() {
     //Defines the Schema of the App

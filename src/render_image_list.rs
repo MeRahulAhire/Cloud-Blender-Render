@@ -1,31 +1,3 @@
-// use std::fs;
-// use std::path::Path;
-// use serde_json::json;
-
-// pub fn get_images_list(){
-//     let mut file_names = Vec::new();
-//     let path = Path::new("./output");
-
-//     // Read and collect file names as Strings
-//     let mut names: Vec<String> = fs::read_dir(path)
-//         .expect("Failed to read ./output directory")
-//         .filter_map(|entry| {
-//             entry.ok()?.file_name().into_string().ok()
-//         })
-//         .collect();
-
-//     // Sort alphabetically
-//     names.sort();
-
-//     // Push sorted names into the provided vector
-//     file_names.extend(names);
-
-//     // Return as JSON
-//     let data = json!({ "data": file_names });
-
-//     println!("{}", data)
-// }
-
 use std::fs;
 use std::path::Path;
 use axum::{

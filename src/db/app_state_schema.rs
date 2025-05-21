@@ -1,8 +1,5 @@
-// schema_handler.rs
 use redis::{Client, JsonCommands, RedisResult};
 use serde_json::json;
-
-// use crate::db::db_connection
 
 pub fn schema_handler() -> RedisResult<()> {
     // sync connection
@@ -17,7 +14,6 @@ pub fn schema_handler() -> RedisResult<()> {
       },
       "blend_file" : {
         "is_present" : false,
-        "display_name" : "",
         "file_name" : ""
       },
       "blender_settings" : {

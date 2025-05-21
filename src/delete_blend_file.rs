@@ -23,7 +23,6 @@ pub async fn delete_handler() -> impl IntoResponse {
                 let data = json!({
                   "blend_file" : {
                   "is_present" : false,
-                  "display_name" : "",
                   "file_name" : "",
                 },
 
