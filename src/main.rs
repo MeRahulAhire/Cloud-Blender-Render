@@ -4,7 +4,6 @@ mod live_image_preview;
 mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
-mod get_blend_file;
 
 
 use axum::{
@@ -38,7 +37,6 @@ async fn main() {
 
     let app = Router::new()
         .route("/", get(hello_world))
-        .route("/get_blend_file", post(get_blend_file::blend_file_exist))
         .route(
             "/upload_blend_file",
             post(upload_blend_file::upload_handler),
