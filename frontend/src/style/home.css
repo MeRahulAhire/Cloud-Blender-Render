@@ -1,0 +1,8 @@
+.home-container{
+    height: 100vh;
+    /* min-height: 500rem; */
+    /* background-color: #0f0f0f; */
+    width: 100%;
+    background-image: url("../assets/images/dark-gradient.jpg");
+
+}

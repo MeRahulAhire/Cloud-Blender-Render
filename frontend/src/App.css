@@ -1,0 +1,11 @@
+.app-global-window{
+    width: 100vw;
+    background-color: #161616;
+    display: flex;
+    justify-content: center;
+}
+
+.app-max-width{
+    width: 100%;
+    max-width: 2000px;
+}
