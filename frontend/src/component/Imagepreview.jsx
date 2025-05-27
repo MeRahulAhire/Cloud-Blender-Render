@@ -42,7 +42,7 @@ export default function Imagepreview() {
                 <div className="ip-startup-context-box">
                     <img src={reel_image} alt="" />
                     <p>
-                        Live preview will appears here after submission. <br />Note - Only available if render output is set to image.
+                        Live preview will appear here after submission. <br />Note - Only available if render output is set to image.
                     </p>
 
                 </div>
