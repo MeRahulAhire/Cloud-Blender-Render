@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import "../style/imagepreview.css";
 import reel_image from "../assets/images/reel.png"
-import render_sample from "../assets/images/0387.png"
+
 
 export default function Imagepreview() {
   useEffect(() => {
