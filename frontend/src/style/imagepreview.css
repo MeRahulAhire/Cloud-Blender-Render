@@ -20,7 +20,7 @@
   -webkit-backdrop-filter: blur(5px);
   border: 1px solid rgba(255, 255, 255, 0.3);
   margin-top: 50px;
-  margin-left: 50px;
+  /* margin-left: 50px; */
   /* margin-right: 50px; */
 }
 .ip-topbar {
@@ -131,6 +131,7 @@
     width: 100%;
     max-height: 3rem;
     font-family: lato-bold;
+    font-size: 1rem;
 }
 
 .ip-image-display{
@@ -149,14 +150,7 @@
 }
 
 
-.dp-control-panel{
-    width: calc(100% -100px);
-    height: 500px;
-    background-color: rgba(75, 65, 65, 0.295);
-    /* margin-top: 50px;
-    margin-right: 50px;
-    margin-left: 50px; */
-}
+
 
 @media screen and (max-width: 1000px) {
     .ip-container{
@@ -172,7 +166,18 @@
         width: 90%;
         margin-left: 1rem;
         margin-right: 1rem;
-        /* width: 100%; */
 
+    }
+}
+
+@media screen and (max-width: 426px) {
+    .ip-startup-context-box p {
+      font-size: 0.9rem;
+    }
+}
+
+@media screen and (max-width: 326px) {
+    .ip-startup-context-box p {
+      font-size: 0.75rem;
     }
 }
