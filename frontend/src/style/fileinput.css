@@ -1,0 +1,59 @@
+@font-face {
+  font-family: lato-bold;
+  src: url("../assets/fonts/Lato-Bold.ttf");
+}
+
+.file-drag-drop-overlay {
+  position: fixed;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(15px);
+  pointer-events: auto;
+  z-index: 999;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: grid;
+  place-items: center;
+}
+
+.dragdrop-border {
+  width: 90%;
+  height: 90%;
+  border: 12px solid #cccccc;
+  border-radius: 50px;
+  display: grid;
+  place-items: center;
+}
+
+.dragdrop-infocontext {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+.dragdrop-infocontext img {
+  height: 100px;
+}
+
+.dragdrop-infocontext p {
+  font-family: lato-bold;
+  font-size: 1.5rem;
+  color: #cccccc;
+  margin-top: 1rem;
+}
+
+.cp-inputbox {
+  width: calc(100% -2rem);
+  height: 100px;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 1rem;
+  border-radius: 1rem;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 2.5px dashed rgba(255, 255, 255, 0.3);
+}

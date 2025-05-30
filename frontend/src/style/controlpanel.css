@@ -1,15 +1,19 @@
 .dp-control-panel {
   width: 100%;
+  
+}
+.dp-control-panel-container{
+  width: 100%;
   margin-top: 50px;
-  /* margin-left: 10px; */
-  /* position: relative; */
   background: rgba(255, 255, 255, 0.2);
-  /* border-radius: 16px;
+  border-radius: 16px;
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
-  backdrop-filter: blur(5px);~
+  backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.3); */
+  border: 1px solid rgba(255, 255, 255, 0.3);
   height: 500px;
+  position: relative;
+  /* overflow: scroll; */
 }
 
 @media screen and (max-width: 1000px) {

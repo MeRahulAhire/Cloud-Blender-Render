@@ -3,6 +3,8 @@
   width: 100%;
   height: auto;
   background-image: url("../assets/images/dark-gradient.jpg");
+  /* background-size: cover; */
+  /* background: #0f0f0f; */
 }
 
 .home-container-display {
@@ -40,7 +42,7 @@
 
 @media screen and (max-width: 1200px) {
   .home-container-display {
-    grid-template-columns: 550px 400px;
+    grid-template-columns: 600px 400px;
   }
 }
 
