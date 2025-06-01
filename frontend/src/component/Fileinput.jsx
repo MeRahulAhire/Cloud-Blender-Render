@@ -2,12 +2,17 @@ import "../style/fileinput.css";
 import { createPortal } from "react-dom";
 import { useEffect, useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import CloudBlenderLogo from "../assets/icons/cloud-blender-render-logo.svg";
-
+import cloudBlenderLogo from "../assets/icons/cloud-blender-render-logo.svg";
+import addFile from "../assets/icons/file-upload.svg";
 export default function Fileinput() {
-  const [isDragging, setIsDragging] = useState(false);
+  const [is_dragging, set_is_dragging] = useState(false);
+  const [progress_bar_status, set_progress_bar_status] = useState(false);
+  const [file_btn, set_file_btn] = useState(false);
+  const [blend_file_name, set_blend_file_name] = useState("");
 
   const onDropRejected = (fileRejections) => {
+    set_progress_bar_status(false);
+    set_file_btn(false);
     fileRejections.forEach((rejection) => {
       console.error("Rejected file:", rejection.file.name);
       rejection.errors.forEach((e) => {
@@ -17,7 +22,10 @@ export default function Fileinput() {
   };
 
   const onDrop = useCallback((acceptFiles) => {
-    console.log(acceptFiles);
+    console.log(acceptFiles[0].name);
+    // set_progress_bar_status(true);
+    set_blend_file_name(acceptFiles[0].name);
+    set_file_btn(true);
   }, []);
 
   const { acceptFiles, getRootProps, getInputProps } = useDropzone({
@@ -27,12 +35,13 @@ export default function Fileinput() {
     accept: {
       "application/x-blender": [".blend"],
     },
+    maxSize: 20 * 1024 * 1024 * 1024,
   });
 
   useEffect(() => {
     const handle_drag_enter = (e) => {
       e.preventDefault();
-      setIsDragging(true);
+      set_is_dragging(true);
     };
 
     const handle_drag_leave = (e) => {
@@ -40,7 +49,7 @@ export default function Fileinput() {
       //   setIsDragging(false);
 
       if (e.relatedTarget === null) {
-        setIsDragging(false);
+        set_is_dragging(false);
       }
     };
 
@@ -52,7 +61,7 @@ export default function Fileinput() {
     const handle_drop = (e) => {
       e.preventDefault();
       e.stopPropagation();
-      setIsDragging(false);
+      set_is_dragging(false);
 
       if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
         const droppedFile = e.dataTransfer.files[0]; // Only use the first file
@@ -76,10 +85,19 @@ export default function Fileinput() {
   }, [onDrop]);
 
   return (
-    <>
-      {isDragging && <Overlay />}
-      <Inputbox getInputProps={getInputProps} getRootProps={getRootProps} />
-    </>
+    <div className="file-input-parent">
+      {is_dragging && <Overlay />}
+
+      {file_btn ? (
+        <FileBtn blend_file_name={blend_file_name} />
+      ) : (
+        <Inputbox
+          getInputProps={getInputProps}
+          getRootProps={getRootProps}
+          progress_bar_status={progress_bar_status}
+        />
+      )}
+    </div>
   );
 }
 
@@ -89,7 +107,7 @@ const Overlay = () => {
       <div className="file-drag-drop-overlay">
         <div className="dragdrop-border">
           <div className="dragdrop-infocontext">
-            <img src={CloudBlenderLogo} alt="logo-svg" />
+            <img src={cloudBlenderLogo} alt="logo-svg" />
             <p>Drag and drop your blend file here</p>
           </div>
         </div>
@@ -99,12 +117,32 @@ const Overlay = () => {
   );
 };
 
-const Inputbox = ({ getInputProps, getRootProps }) => {
+const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
   return (
     <>
-      <div {...getRootProps({ className: "dropzone" })} className="cp-inputbox">
+      <div {...getRootProps()} className="cp-inputbox">
         <input {...getInputProps()} />
+        <div className="inputbox-item-contianer">
+          <img src={addFile} alt="file-upload-icon" />
+          <p className="file-upload-label">
+            Click or drag and drop your blend file
+          </p>
+          <p className="max-size-limit">(Max File size: 20 GB)</p>
+        </div>
+        {progress_bar_status && <div className="upload-progressbar"></div>}
       </div>
+    </>
+  );
+};
+
+const FileBtn = ({ blend_file_name }) => {
+  return (
+    <>
+      <>
+        <button className="file-button-parent" onMouseOver={null}>
+          <p>{blend_file_name}</p>
+        </button>
+      </>
     </>
   );
 };

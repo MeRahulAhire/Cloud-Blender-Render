@@ -3,6 +3,14 @@
   src: url("../assets/fonts/Lato-Bold.ttf");
 }
 
+@font-face {
+  font-family: lato;
+  src: url("../assets/fonts/Lato-Regular.ttf");
+}
+
+
+
+
 .file-drag-drop-overlay {
   position: fixed;
   background: rgba(255, 255, 255, 0.2);
@@ -55,5 +63,85 @@
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
-  border: 2.5px dashed rgba(255, 255, 255, 0.3);
+  border: dashed rgba(255, 255, 255, 0.3);
+  display: grid;
+  place-items: center;
+  position: relative;
+  overflow: hidden;
 }
+
+.inputbox-item-contianer{
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
+.inputbox-item-contianer img{
+  height: 48px;
+}
+
+.file-upload-label {
+  font-family: lato-bold;
+  font-size: 0.9rem;
+  margin-top: 0.3rem;
+  color: #212121;
+  
+}
+.max-size-limit{
+font-family: lato;
+margin-top: 0.25rem;
+font-size: 0.75rem;
+color: #2f2f2f;
+}
+
+
+.upload-progressbar{
+  background-color: rgba(204, 204, 204, 0.5);
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 50%;
+  /* border-radius: 16px; */
+  left: 0;
+}
+
+
+/* .file-button-parent{
+  height: 3.5rem;
+  width: calc(100% - 2rem);
+  background-color: #212121;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 1rem;
+  border-radius: 1rem;
+} */
+
+.file-button-parent{
+  width: calc(100% - 2rem);
+  height: 3.5rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 1rem;
+  border-radius: 1rem;
+  font-family: lato-bold;
+  font-size: 1rem;
+  background: #212121;
+  outline: none;
+  border: none;
+  color: #f1f1f1;
+  cursor: pointer;
+  
+}
+.file-button-parent p {
+  font-size: 0.9rem;
+  width: calc(100% - 2rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-left: 1rem;
+  margin-right: 1rem;
+  
+}
+
+
+
