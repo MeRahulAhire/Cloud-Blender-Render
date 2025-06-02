@@ -8,7 +8,14 @@
   src: url("../assets/fonts/Lato-Regular.ttf");
 }
 
+.file-input-parent{
+  height: 105px;
+  transition: height 0.5s ease;
+}
 
+.file-input-parent-toggle{
+  height: 3.5rem;
+}
 
 
 .file-drag-drop-overlay {
@@ -70,13 +77,13 @@
   overflow: hidden;
 }
 
-.inputbox-item-contianer{
+.inputbox-item-container{
   display: flex;
   justify-content: center;
   flex-direction: column;
   align-items: center;
 }
-.inputbox-item-contianer img{
+.inputbox-item-container img{
   height: 48px;
 }
 
@@ -106,15 +113,7 @@ color: #2f2f2f;
 }
 
 
-/* .file-button-parent{
-  height: 3.5rem;
-  width: calc(100% - 2rem);
-  background-color: #212121;
-  margin-left: 1rem;
-  margin-right: 1rem;
-  margin-top: 1rem;
-  border-radius: 1rem;
-} */
+
 
 .file-button-parent{
   width: calc(100% - 2rem);
@@ -123,25 +122,31 @@ color: #2f2f2f;
   margin-right: 1rem;
   margin-top: 1rem;
   border-radius: 1rem;
-  font-family: lato-bold;
+  
   font-size: 1rem;
   background: #212121;
   outline: none;
   border: none;
   color: #f1f1f1;
   cursor: pointer;
+  display: grid;
+  place-items: center;
   
 }
 .file-button-parent p {
-  font-size: 0.9rem;
+  font-size: 0.95rem;
   width: calc(100% - 2rem);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: 1rem;
   margin-right: 1rem;
+  font-family: lato-bold;
   
 }
 
+.file-button-parent img{
+  height: 1.25rem;
+}
 
 

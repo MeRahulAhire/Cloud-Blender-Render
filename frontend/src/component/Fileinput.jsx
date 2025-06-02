@@ -4,6 +4,8 @@ import { useEffect, useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import cloudBlenderLogo from "../assets/icons/cloud-blender-render-logo.svg";
 import addFile from "../assets/icons/file-upload.svg";
+import deleteIcon from "../assets/icons/trash.svg"
+
 export default function Fileinput() {
   const [is_dragging, set_is_dragging] = useState(false);
   const [progress_bar_status, set_progress_bar_status] = useState(false);
@@ -85,10 +87,10 @@ export default function Fileinput() {
   }, [onDrop]);
 
   return (
-    <div className="file-input-parent">
-      {is_dragging && <Overlay />}
+    <div  className={`file-input-parent ${!!file_btn && 'file-input-parent-toggle'}`} >
+      {!!is_dragging && <Overlay />}
 
-      {file_btn ? (
+      {!!file_btn ? (
         <FileBtn blend_file_name={blend_file_name} />
       ) : (
         <Inputbox
@@ -122,7 +124,7 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
     <>
       <div {...getRootProps()} className="cp-inputbox">
         <input {...getInputProps()} />
-        <div className="inputbox-item-contianer">
+        <div className="inputbox-item-container">
           <img src={addFile} alt="file-upload-icon" />
           <p className="file-upload-label">
             Click or drag and drop your blend file
@@ -136,11 +138,25 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
 };
 
 const FileBtn = ({ blend_file_name }) => {
+
+  const [hover_state, set_hover_state] = useState(false)
+
+  const hover_enter = () => {
+    set_hover_state(true)
+
+  }
+
+  const hover_leave = () => {
+    set_hover_state(false)
+  }
+  
+
   return (
     <>
       <>
-        <button className="file-button-parent" onMouseOver={null}>
-          <p>{blend_file_name}</p>
+        <button  className="file-button-parent" onMouseEnter={hover_enter} onMouseLeave={hover_leave} >
+          {hover_state ? <img src={deleteIcon} alt="trash-icon" /> : <p>{blend_file_name}</p>}
+          
         </button>
       </>
     </>
