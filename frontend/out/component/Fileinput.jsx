@@ -6,7 +6,6 @@ import cloudBlenderLogo from "../assets/icons/cloud-blender-render-logo.svg";
 import addFile from "../assets/icons/file-upload.svg";
 import deleteIcon from "../assets/icons/trash.svg"
 
-
 export default function Fileinput() {
   const [is_dragging, set_is_dragging] = useState(false);
   const [progress_bar_status, set_progress_bar_status] = useState(false);
@@ -126,7 +125,7 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
       <div {...getRootProps()} className="cp-inputbox">
         <input {...getInputProps()} />
         <div className="inputbox-item-container">
-          <img src={addFile} draggable="false" alt="file-upload-icon" />
+          <img src={addFile} alt="file-upload-icon" />
           <p className="file-upload-label">
             Click or drag and drop your blend file
           </p>

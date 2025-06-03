@@ -8,15 +8,9 @@
   src: url("../assets/fonts/Lato-Regular.ttf");
 }
 
-@font-face {
-  font-family: roboto;
-  src: url("../assets/fonts/Roboto-VariableFont-wdth-wght.ttf");
-}
-
 .file-input-parent{
   height: 105px;
   transition: height 0.5s ease;
-  user-select: none;
 }
 
 .file-input-parent-toggle{
@@ -54,7 +48,6 @@
 }
 .dragdrop-infocontext img {
   height: 100px;
-  user-select: none;
 }
 
 .dragdrop-infocontext p {
@@ -148,8 +141,7 @@ color: #2f2f2f;
   white-space: nowrap;
   margin-left: 1rem;
   margin-right: 1rem;
-  font-family: roboto;
-  font-weight: 700;
+  font-family: lato-bold;
   
 }
 
