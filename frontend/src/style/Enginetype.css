@@ -1,0 +1,53 @@
+.engine-container {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  height: auto;
+  width: calc(100% - 2rem);
+  margin-left: 1rem;
+  margin-right: 1rem;
+  margin-top: 0.75rem;
+  border-radius: 1rem;
+}
+
+.engine-container-head {
+  margin-top: 0.5rem;
+  margin-left: 0.75rem;
+  font-family: roboto;
+  font-weight: 700;
+  font-size: 1.25rem;
+  color: #f7f7f7;
+}
+
+.engine-type {
+  margin-top: 0.75rem;
+  margin-left: 0.75rem;
+  display: flex;
+  gap: 0.5rem;
+  width: 275px;
+}
+
+.engine-tag-label {
+  height: 2rem;
+  background: linear-gradient(
+    153deg,
+    rgba(61, 61, 61, 1) 0%,
+    rgba(33, 33, 33, 1) 43%
+  );
+  width: max-content;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  display: grid;
+  place-items: center;
+  border-radius: 70px;
+  color: #f7f7f7;
+  font-family: roboto;
+  font-weight: 500;
+  font-size: 0.75rem;
+  cursor: pointer;
+  user-select: none;
+  outline: none;
+  touch-action: none;
+}

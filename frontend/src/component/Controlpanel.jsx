@@ -1,6 +1,7 @@
 import "../style/controlpanel.css"
 import Fileinput from "./Fileinput";
-import Animationtype from "../component/Animationtype"
+import Animationtype from "./Animationtype"
+import Enginetype from "./Enginetype";
 export default function Controlpanel() {
   return (
     <>
@@ -8,6 +9,7 @@ export default function Controlpanel() {
         <div className="dp-control-panel-container">
           <Fileinput/>
           <Animationtype/>
+          <Enginetype/>
         </div>
       </div>
     </>
