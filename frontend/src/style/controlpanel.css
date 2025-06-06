@@ -1,8 +1,7 @@
 .dp-control-panel {
   width: 100%;
-  
 }
-.dp-control-panel-container{
+.dp-control-panel-container {
   width: 100%;
   margin-top: 50px;
   background: rgba(255, 255, 255, 0.2);
@@ -13,9 +12,83 @@
   border: 1px solid rgba(255, 255, 255, 0.3);
   height: auto;
   position: relative;
-  /* overflow: scroll; */
 }
 
+.toggle-panel-box {
+  width: 100%;
+  height: 3rem;
+  margin-top: 1rem;
+  /* background: #56515174; */
+}
+.toggle-switch-section {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  /* gap: 1rem; */
+  justify-content: center;
+  align-items: center;
+}
+.control-panel-switch {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-family: roboto;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  /* border-radius: 16px; */
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-left: 0.5px;
+  border-bottom: 0;
+  border-top-left-radius: 0.5rem;
+  cursor: pointer;
+}
+.file-browser-switch {
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-family: roboto;
+  font-size: 0.95rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border-left: 0.5px;
+  border-bottom: 0;
+  border-top-right-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.render-start-stop{
+  width: calc(100% - 1.5rem);
+  height: 3rem;
+  margin-top: 1rem;
+  margin-left: 0.75rem;
+  border-radius: 0.5rem;
+  color: #212121;
+  font-family: roboto;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+  /* background-image: linear-gradient(to top, #37ecba 0%, #72afd3 100%); */
+  /* background-image: linear-gradient(330deg, #43e97b 30%, #70e095 100%); */
+ background-image: linear-gradient(150deg, #43e97b 0%, #38f9d7 80%);
+  cursor: pointer;
+}
+
+.stop-render-toggle{
+  background-image: linear-gradient(330deg, #ff0844 30%, #fb7395 100%);
+  color: #f7f7f7;
+}
 @media screen and (max-width: 1000px) {
   .dp-control-panel {
     margin-top: 32px;

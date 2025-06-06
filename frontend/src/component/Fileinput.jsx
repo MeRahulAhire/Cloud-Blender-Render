@@ -89,7 +89,7 @@ export default function Fileinput() {
 
   return (
     <div  className={`file-input-parent ${!!file_btn && 'file-input-parent-toggle'}`} >
-      {!!is_dragging && <Overlay />}
+      {!!is_dragging && !file_btn && <Overlay />}
 
       {!!file_btn ? (
         <FileBtn blend_file_name={blend_file_name} />

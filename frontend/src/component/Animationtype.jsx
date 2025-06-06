@@ -12,8 +12,8 @@ export default function Animationtype() {
           <div className="anime-top-tags-label">Range</div>
         </div>
       <div className="anime-bottom">
-        {/* <Single_frame/> */}
-        <Range_frame />
+        <Single_frame/>
+        {/* <Range_frame /> */}
       </div>
     </div>
   );

@@ -41,7 +41,7 @@
 }
 
 .anime-top-tags {
-  margin-top: 1rem;
+  margin-top: 0.5rem;
   display: flex;
   /* flex-direction: column; */
   gap: 0.5rem;
@@ -85,7 +85,7 @@
 }
 
 .anime-bottom {
-  margin-top: 0.75rem;
+  margin-top: 1rem;
   margin-left: 0.75rem;
   margin-right: 0.75rem;
   margin-bottom: 0.75rem;
