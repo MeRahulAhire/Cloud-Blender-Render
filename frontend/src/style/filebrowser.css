@@ -1,10 +1,10 @@
-.filebrowser-container{
-    margin-top: 1rem;
-    width: calc(100% -1.5rem);
-    margin-left: 0.75rem;
-    margin-right: 0.75rem;
-    height: 400px;
-    background: rgba(255, 255, 255, 0.2);
+.filebrowser-container {
+  margin-top: 1rem;
+  width: calc(100% - 2rem);
+  margin-left: 1rem;
+  margin-right: 1rem;
+  height: 400px;
+  background: rgba(255, 255, 255, 0.2);
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(5px);
   -webkit-backdrop-filter: blur(5px);
@@ -12,6 +12,62 @@
   border-radius: 1rem;
 }
 
-.filelist-box{
-    
+.filelist-box {
+  width: calc(100% - 1.5rem);
+  margin-left: 0.75rem;
+  /* margin-right: 0.75rem; */
+  margin-top: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.5rem;
+  height: 300px;
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow-y: scroll;
+  /* scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;  */
+  /* display: flex;
+  justify-content: center; */
+  flex-direction: column;
+}
+
+.filelist-box::-webkit-scrollbar {
+  width: 6px; /* Slim scrollbar */
+}
+
+.filelist-box::-webkit-scrollbar-track {
+  background: transparent; /* Transparent track */
+}
+
+.filelist-box::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3); /* Normal state: semi-transparent */
+  border-radius: 4px;
+}
+
+.filelist-box::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.9); /* Hover: more solid */
+
+}
+.file-list {
+  width: calc(100% - 1.5rem);
+  height: 2.5rem;
+  background-color: #212121;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  margin-left: 0.75rem;
+  display: flex;
+  /* justify-content: center; */
+  align-items: center;
+  
+  
+}
+
+.file-list p {
+  color: #f7f7f7;
+  font-family: roboto;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-left: 1rem;
 }
