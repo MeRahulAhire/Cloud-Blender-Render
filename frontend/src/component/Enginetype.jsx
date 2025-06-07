@@ -9,7 +9,6 @@ export default function Enginetype() {
         <div className="engine-tag-label">WORKBENCH</div>
         <div className="engine-tag-label">EEVEE NEXT</div>
       </div>
-      {/* <hr className="engine-subsection-seperator" /> */}
       <div className="cycle-subsection">
         <div className="cycles-type-head">Cycles device</div>
         <div className="cycle-type-tags-box">
