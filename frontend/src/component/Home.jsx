@@ -1,5 +1,5 @@
 import "../style/home.css";
-import Navbar from "./navbar";
+import Navbar from "./Navbar";
 import Imagepreview from "./Imagepreview";
 import Controlpanel from "./Controlpanel";
 

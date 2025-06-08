@@ -4,12 +4,19 @@ import { useEffect, useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import cloudBlenderLogo from "../assets/icons/cloud-blender-render-logo.svg";
 import addFile from "../assets/icons/file-upload.svg";
-import deleteIcon from "../assets/icons/trash.svg"
-
+import deleteIcon from "../assets/icons/trash.svg";
+import central_store from "./Store";
+import axios from "axios";
 
 export default function Fileinput() {
+  const fetch_data = central_store.getState().fetch_data;
+  const blend_file = central_store.getState().blend_file;
+  const upload_percentage = central_store.getState().upload_percentage;
+  const set_upload_percentage = central_store(
+    (state) => state.set_upload_percentage
+  );
+  const base_url = central_store((state) => state.base_url);
   const [is_dragging, set_is_dragging] = useState(false);
-  const [progress_bar_status, set_progress_bar_status] = useState(false);
   const [file_btn, set_file_btn] = useState(false);
   const [blend_file_name, set_blend_file_name] = useState("");
 
@@ -24,12 +31,43 @@ export default function Fileinput() {
     });
   };
 
-  const onDrop = useCallback((acceptFiles) => {
-    console.log(acceptFiles[0].name);
-    // set_progress_bar_status(true);
-    set_blend_file_name(acceptFiles[0].name);
-    set_file_btn(true);
-  }, []);
+  const onDrop = useCallback(
+    (acceptFiles) => {
+      const file = acceptFiles[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      axios
+        .post(`${base_url}/upload_blend_file`, formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentage = Math.round(
+              (progressEvent.loaded * 100) / progressEvent.total
+            );
+            set_upload_percentage(percentage);
+          },
+        })
+        .then((res) => {
+          console.log("Upload complete", res.data);
+          set_file_btn(true);
+          set_blend_file_name(file.name);
+          fetch_data()
+        })
+        .catch((err) => {
+          console.error("Upload failed", err);
+          set_upload_percentage(0);
+        });
+
+      // console.log(acceptFiles[0].name);
+      // console.log(blend_file);
+      // set_progress_bar_status(true);
+      // set_blend_file_name(acceptFiles[0].name);
+      // set_file_btn(true);
+    },
+    [set_upload_percentage]
+  );
 
   const { acceptFiles, getRootProps, getInputProps } = useDropzone({
     onDrop,
@@ -88,16 +126,20 @@ export default function Fileinput() {
   }, [onDrop]);
 
   return (
-    <div  className={`file-input-parent ${!!file_btn && 'file-input-parent-toggle'}`} >
-      {!!is_dragging && !file_btn && <Overlay />}
+    <div
+      className={`file-input-parent ${
+        !!blend_file.is_present && "file-input-parent-toggle"
+      }`}
+    >
+      {!!is_dragging && !blend_file.is_present && <Overlay />}
 
-      {!!file_btn ? (
-        <FileBtn blend_file_name={blend_file_name} />
+      {!!blend_file.is_present ? (
+        <FileBtn blend_file_name={blend_file.file_name} />
       ) : (
         <Inputbox
           getInputProps={getInputProps}
           getRootProps={getRootProps}
-          progress_bar_status={progress_bar_status}
+          progress_bar_status={upload_percentage}
         />
       )}
     </div>
@@ -132,32 +174,41 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
           </p>
           <p className="max-size-limit">(Max File size: 20 GB)</p>
         </div>
-        {progress_bar_status && <div className="upload-progressbar"></div>}
+        {
+          <div
+            className="upload-progressbar"
+            style={{ width: `${progress_bar_status}%` }}
+          ></div>
+        }
       </div>
     </>
   );
 };
 
 const FileBtn = ({ blend_file_name }) => {
-
-  const [hover_state, set_hover_state] = useState(false)
+  const [hover_state, set_hover_state] = useState(false);
 
   const hover_enter = () => {
-    set_hover_state(true)
-
-  }
+    set_hover_state(true);
+  };
 
   const hover_leave = () => {
-    set_hover_state(false)
-  }
-  
+    set_hover_state(false);
+  };
 
   return (
     <>
       <>
-        <button  className="file-button-parent" onMouseEnter={hover_enter} onMouseLeave={hover_leave} >
-          {hover_state ? <img src={deleteIcon} alt="trash-icon" /> : <p>{blend_file_name}</p>}
-          
+        <button
+          className="file-button-parent"
+          onMouseEnter={hover_enter}
+          onMouseLeave={hover_leave}
+        >
+          {hover_state ? (
+            <img src={deleteIcon} alt="trash-icon" />
+          ) : (
+            <p>{blend_file_name}</p>
+          )}
         </button>
       </>
     </>

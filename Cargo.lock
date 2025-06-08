@@ -10,6 +10,7 @@ dependencies = [
  "axum_typed_multipart",
  "base64",
  "file-format",
+ "http",
  "image2",
  "nix",
  "notify",
