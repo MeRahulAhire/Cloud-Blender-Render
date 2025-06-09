@@ -69,10 +69,11 @@
 }
 
 .render-start-stop{
-  width: calc(100% - 1.5rem);
+  width: calc(100% - 2rem);
   height: 3rem;
   margin-top: 1rem;
-  margin-left: 0.75rem;
+  margin-left: 1rem;
+  margin-right: 1rem;
   border-radius: 0.5rem;
   color: #212121;
   font-family: roboto;

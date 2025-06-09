@@ -28,6 +28,35 @@ const central_store = create((set, get) => ({
       })
     );
   },
+
+  set_entire_sequence: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.entire = value;
+      })
+    );
+  },
+  set_range_sequence: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.status = value;
+      })
+    );
+  },
+  set_single_frame: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.single_frame.status = value;
+      })
+    );
+  },
+  set_anime_query: (value) => {
+    set(
+      produce((state) => {
+        state.anime_query = value;
+      })
+    );
+  },
 }));
 
 export default central_store;

@@ -7,9 +7,11 @@ import { useState } from "react";
 import Start from "../assets/icons/start.svg"
 import Stop from "../assets/icons/stop.svg"
 import central_store from "./Store";
+import axios from "axios";
 export default function Controlpanel() {
   const [cp_state, set_cp_state] = useState(true)
   const [render_state, set_render_state] = useState(false)
+  const base_url = central_store((state) => state.base_url);
  
 
 
@@ -20,7 +22,8 @@ export default function Controlpanel() {
     set_cp_state(true)
   }
   const testApi = () => {
-    
+    axios.post(`${base_url}/render_list`, {})
+    .then(res => console.log(res.data.data[2]))
   }
   return (
     <>

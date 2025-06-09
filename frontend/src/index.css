@@ -1,8 +1,13 @@
 *{
   margin: 0;
   padding: 0;
+  transition: opacity 0.25s ease;
 
   /* For debugging */
   /* outline: 1px solid red; */
   /* box-sizing: border-box; */
+}
+
+.dim-opacity{
+  opacity: 0.75;
 }

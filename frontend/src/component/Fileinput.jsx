@@ -15,6 +15,9 @@ export default function Fileinput() {
   const set_upload_percentage = central_store(
     (state) => state.set_upload_percentage
   );
+  const render_status = central_store(
+    (state) => state.render_status.is_rendering
+  );
   const base_url = central_store((state) => state.base_url);
   const [is_dragging, set_is_dragging] = useState(false);
 
@@ -48,7 +51,7 @@ export default function Fileinput() {
           },
         })
         .then((res) => {
-          fetch_data()
+          fetch_data();
         })
         .catch((err) => {
           console.error("Upload failed", err);
@@ -130,7 +133,13 @@ export default function Fileinput() {
       {!!is_dragging && !blend_file.is_present && <Overlay />}
 
       {!!blend_file.is_present ? (
-        <FileBtn blend_file_name={blend_file.file_name} fetch_data={fetch_data} base_url={base_url} set_upload_percentage={set_upload_percentage} />
+        <FileBtn
+          blend_file_name={blend_file.file_name}
+          fetch_data={fetch_data}
+          base_url={base_url}
+          set_upload_percentage={set_upload_percentage}
+          render_status={render_status}
+        />
       ) : (
         <Inputbox
           getInputProps={getInputProps}
@@ -181,34 +190,49 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
   );
 };
 
-const FileBtn = ({ blend_file_name, fetch_data, base_url, set_upload_percentage }) => {
+const FileBtn = ({
+  blend_file_name,
+  fetch_data,
+  base_url,
+  set_upload_percentage,
+  render_status,
+}) => {
   const [hover_state, set_hover_state] = useState(false);
 
   const hover_enter = () => {
-    set_hover_state(true);
+    if (render_status === false) {
+      set_hover_state(true);
+    }
   };
 
   const hover_leave = () => {
-    set_hover_state(false);
+    if (render_status === false) {
+      set_hover_state(false);
+    }
   };
   const delete_blend_file = () => {
-    axios.post(`${base_url}/delete_blend_file`, {})
-    .then((res) => {
-      // console.log(upload_percentage)
-      set_upload_percentage(0)
-      fetch_data();
-    })
-    .catch((err) => {
-      console.log(err)
-      fetch_data();
-    })
-  }
+    if (render_status === false) {
+      axios
+        .post(`${base_url}/delete_blend_file`, {})
+        .then((res) => {
+          // console.log(upload_percentage)
+          set_upload_percentage(0);
+          fetch_data();
+        })
+        .catch((err) => {
+          console.log(err);
+          fetch_data();
+        });
+    }
+  };
 
   return (
     <>
       <>
         <button
-          className="file-button-parent"
+          className={`file-button-parent ${
+            !!render_status ? `dim-opacity` : ""
+          }`}
           onMouseEnter={hover_enter}
           onMouseLeave={hover_leave}
           onClick={delete_blend_file}

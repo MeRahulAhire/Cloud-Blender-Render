@@ -32,7 +32,7 @@ export default function App() {
     fetch_data();
   }, []);
 
-  if (!has_fetched) {
+  if (has_fetched === false) {
     return (
       <div className="app-loading-screen">
         {/* Optional: Add a spinner here */}
@@ -41,7 +41,7 @@ export default function App() {
     );
   }
 
-  if (!!has_fetched) {
+  if (has_fetched === true) {
     return (
       <div className="app-global-window">
         <div className="app-max-width">

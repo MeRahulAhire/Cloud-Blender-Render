@@ -36,7 +36,10 @@ pub fn schema_handler() -> RedisResult<()> {
       "render_status" : {
         "is_rendering" : false
       },
-      "latest_preview_image" :""
+      "latest_preview_image" :"",
+      "rendered_images" : [],
+      "anime_query" : "",
+      "engine_query" : ""
     });
 
     let _: () = con.json_set("items", "$", &data)?;
