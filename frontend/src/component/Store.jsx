@@ -28,49 +28,6 @@ const central_store = create((set, get) => ({
       })
     );
   },
-
-  set_entire_sequence: (value) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.entire = value;
-      })
-    );
-  },
-  set_range_sequence: (value) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.range.status = value;
-      })
-    );
-  },
-  set_start_range_value: (e) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.range.start_frame = Math.abs(e.target.value);
-      })
-    );
-  },
-  set_end_range_value: (e) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.range.end_frame = Math.abs(e.target.value);
-      })
-    );
-  },
-  set_single_frame: (value) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.single_frame.status = value;
-      })
-    );
-  },
-  set_single_frame_value: (e) => {
-    set(
-      produce((state) => {
-        state.blender_settings.animation_sequence.single_frame.frame_value = Math.abs(e.target.value);
-      })
-    );
-  },
   set_anime_query: (value) => {
     set(
       produce((state) => {
@@ -96,6 +53,70 @@ const central_store = create((set, get) => ({
     set(
       produce((state) => {
         state.engine_query = value;
+      })
+    );
+  },
+  set_start_range_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.start_frame = Math.abs(
+          e.target.value
+        );
+        // rebuild anime_query immediately:
+        const { start_frame, end_frame } =
+          state.blender_settings.animation_sequence.range;
+        state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+      })
+    );
+  },
+  set_end_range_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.end_frame = Math.abs(
+          e.target.value
+        );
+        const { start_frame, end_frame } =
+          state.blender_settings.animation_sequence.range;
+        state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+      })
+    );
+  },
+  set_single_frame_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.single_frame.frame_value =
+          Math.abs(e.target.value);
+        state.anime_query = `-f ${state.blender_settings.animation_sequence.single_frame.frame_value}`;
+      })
+    );
+  },
+  set_entire_sequence: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.entire = value;
+        if (value) state.anime_query = `-a`;
+      })
+    );
+  },
+  set_range_sequence: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.status = value;
+        if (value) {
+          const { start_frame, end_frame } =
+            state.blender_settings.animation_sequence.range;
+          state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+        }
+      })
+    );
+  },
+  set_single_frame: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.single_frame.status = value;
+        if (value) {
+          state.anime_query = `-f ${state.blender_settings.animation_sequence.single_frame.frame_value}`;
+        }
       })
     );
   },

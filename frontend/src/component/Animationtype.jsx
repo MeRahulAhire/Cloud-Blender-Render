@@ -213,7 +213,7 @@ const Range_frame = ({
       </div>
       <div className="end-box">
         <div className="end-box-label">End Frame</div>
-        <input value={end_range_value} type="text" className="end-box-value" onch={set_end_range_value} />
+        <input value={end_range_value} type="text" className="end-box-value" onChange={set_end_range_value} />
       </div>
     </div>
   );

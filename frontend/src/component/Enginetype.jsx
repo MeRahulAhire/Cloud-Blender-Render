@@ -9,8 +9,6 @@ export default function Enginetype() {
 
   const engine_type = central_store((state) => state.blender_settings.engine);
   const cycle_device = central_store(state => state.blender_settings.cycle_device);
-  const engine_query = central_store(state => state.engine_query);
-  const anime_query = central_store(state => state.anime_query);
   
   const blend_file_present = central_store(
     (state) => state.blend_file.is_present
@@ -50,7 +48,6 @@ export default function Enginetype() {
     if (!!blend_file_present && !render_status && engine_type === "CYCLES") {
       set_cycle_device(`OPTIX`)
       set_engine_query(`-E CYCLES -- --cycles-device OPTIX`);
-      console.log(`blender-query : ${anime_query} ${engine_query}`)
     }
   } 
 
