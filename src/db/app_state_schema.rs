@@ -22,16 +22,16 @@ pub fn schema_handler() -> RedisResult<()> {
           "entire" : false,
           "range" : {
             "status" : false,
-            "start_frame" : 0,
-            "end_frame" : 0
+            "start_frame" : 1,
+            "end_frame" : 1
           },
           "single_frame" : {
             "status" : false,
-            "frame_value" : 0
+            "frame_value" : 1
           }
 
         },
-        "cycle-device" : ""
+        "cycle_device" : ""
       },
       "render_status" : {
         "is_rendering" : false

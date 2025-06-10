@@ -51,6 +51,19 @@
   outline: none;
   touch-action: none;
 }
+
+.engine-tag-label-toggle {
+  background-image: linear-gradient(
+    to right,
+    #f78ca0 0%,
+    #f9748f 19%,
+    #fd868c 60%,
+    #fe9a8b 100%
+  );
+  color: #212121;
+  font-family: roboto;
+  font-weight: 500;
+}
 .engine-subsection-seperator {
   width: calc(100% - 1.5rem);
   margin-left: 0.75rem;
@@ -122,4 +135,14 @@
   user-select: none;
   outline: none;
   touch-action: none;
+}
+
+.cycle-type-tags-toggle {
+  background-image: linear-gradient(
+    315deg,
+    #1e3c72 0%,
+    #264b8d 1%,
+    #3264bb 100%
+  );
+  color: #f7f7f7;
 }

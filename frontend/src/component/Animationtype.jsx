@@ -1,21 +1,46 @@
 import "../style/animationtype.css";
 import central_store from "./Store";
 export default function Animationtype() {
-  const set_entire_sequence = central_store((state) => state.set_entire_sequence);
-  const set_range_sequence = central_store((state) => state.set_range_sequence);
-  const set_single_frame = central_store((state) => state.set_single_frame);
-  const set_anime_query = central_store((state) => state.set_anime_query);
+  const {
+    set_entire_sequence,
+    set_range_sequence,
+    set_start_range_value,
+    set_end_range_value,
+    set_single_frame,
+    set_single_frame_value,
+    set_anime_query,
+    set_engine,
+    set_cycle_device,
+    set_engine_query,
+  } = central_store();
 
-  const entire_sequence = central_store((state) => state.blender_settings.animation_sequence.entire);
-  const range_sequence = central_store((state) => state.blender_settings.animation_sequence.range.status);
-  const start_range_value = central_store((state) => state.blender_settings.animation_sequence.range.start_frame);
-  const end_range_value = central_store((state) => state.blender_settings.animation_sequence.range.end_frame);
+  const entire_sequence = central_store(
+    (state) => state.blender_settings.animation_sequence.entire
+  );
+  const range_sequence = central_store(
+    (state) => state.blender_settings.animation_sequence.range.status
+  );
+  const start_range_value = central_store(
+    (state) => state.blender_settings.animation_sequence.range.start_frame
+  );
+  const end_range_value = central_store(
+    (state) => state.blender_settings.animation_sequence.range.end_frame
+  );
 
-  const single_frame = central_store((state) => state.blender_settings.animation_sequence.single_frame.status);
-  const single_frame_value = central_store((state) => state.blender_settings.animation_sequence.single_frame.frame_value);
+  const single_frame = central_store(
+    (state) => state.blender_settings.animation_sequence.single_frame.status
+  );
+  const single_frame_value = central_store(
+    (state) =>
+      state.blender_settings.animation_sequence.single_frame.frame_value
+  );
 
-  const blend_file_present = central_store((state) => state.blend_file.is_present);
-  const render_status = central_store((state) => state.render_status.is_rendering);
+  const blend_file_present = central_store(
+    (state) => state.blend_file.is_present
+  );
+  const render_status = central_store(
+    (state) => state.render_status.is_rendering
+  );
 
   const set_entire_sequence_in_store = () => {
     if (!!blend_file_present && !render_status) {
@@ -84,36 +109,78 @@ export default function Animationtype() {
           entire_sequence={entire_sequence}
           range_sequence={range_sequence}
           single_frame={single_frame}
-
           single_frame_value={single_frame_value}
+          set_single_frame_value={set_single_frame_value}
           start_range_value={start_range_value}
+          set_start_range_value={set_start_range_value}
           end_range_value={end_range_value}
+          set_end_range_value={set_end_range_value}
         />
       </div>
     </div>
   );
 }
 
-const Section_switch = ({ entire_sequence, range_sequence, single_frame }) => {
+const Section_switch = ({
+  entire_sequence,
+  range_sequence,
+  single_frame,
+  single_frame_value,
+  set_single_frame_value,
+  start_range_value,
+  set_start_range_value,
+  end_range_value,
+  set_end_range_value,
+}) => {
   if (range_sequence === true) {
-    return <Range_frame />;
+    return (
+      <Range_frame
+        start_range_value={start_range_value}
+        set_start_range_value={set_start_range_value}
+        end_range_value={end_range_value}
+        set_end_range_value={set_end_range_value}
+      />
+    );
   }
 
   if (single_frame === true) {
-    return <Single_frame single_frame={single_frame} />;
+    return (
+      <Single_frame
+        single_frame={single_frame}
+        single_frame_value={single_frame_value}
+        set_single_frame_value={set_single_frame_value}
+      />
+    );
   }
 
   if (entire_sequence === true) {
-    return <Single_frame single_frame={single_frame} />;
+    return (
+      <Single_frame
+        single_frame={single_frame}
+        single_frame_value={single_frame_value}
+        set_single_frame_value={set_single_frame_value}
+      />
+    );
   }
   if (entire_sequence === false) {
-    return <Single_frame single_frame={single_frame} />;
+    return (
+      <Single_frame
+        single_frame={single_frame}
+        single_frame_value={single_frame_value}
+        set_single_frame_value={set_single_frame_value}
+      />
+    );
   }
   // fallback to nothing (or return null)
   return null;
 };
 
-const Single_frame = ({ single_frame }) => {
+const Single_frame = ({
+  single_frame,
+  single_frame_value,
+  set_single_frame_value,
+}) => {
+
   return (
     <div
       className={`single-frame-container ${!single_frame ? `dim-opacity` : ""}`}
@@ -123,21 +190,30 @@ const Single_frame = ({ single_frame }) => {
         type="number"
         className="single-frame-value-box"
         disabled={!single_frame}
+        value={single_frame_value}
+        onChange={set_single_frame_value}
       />
     </div>
   );
 };
 
-const Range_frame = () => {
+const Range_frame = ({
+  start_range_value,
+  set_start_range_value,
+  end_range_value,
+  set_end_range_value,
+}) => {
+
+
   return (
     <div className="range-container">
       <div className="start-box">
         <div className="start-box-label">Start frame</div>
-        <input type="number" className="start-box-value" />
+        <input value={start_range_value} type="number" className="start-box-value" onChange={set_start_range_value} />
       </div>
       <div className="end-box">
         <div className="end-box-label">End Frame</div>
-        <input type="text" className="end-box-value" />
+        <input value={end_range_value} type="text" className="end-box-value" onch={set_end_range_value} />
       </div>
     </div>
   );

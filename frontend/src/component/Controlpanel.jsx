@@ -13,7 +13,9 @@ export default function Controlpanel() {
   const [render_state, set_render_state] = useState(false)
   const base_url = central_store((state) => state.base_url);
  
-
+ const anime_query = central_store(state => state.anime_query);
+ const engine_query = central_store(state => state.engine_query);
+ const blender_settings = central_store(state => state.blender_settings)
 
   const download_view = () => {
     set_cp_state(false)
@@ -22,8 +24,13 @@ export default function Controlpanel() {
     set_cp_state(true)
   }
   const testApi = () => {
-    axios.post(`${base_url}/render_list`, {})
-    .then(res => console.log(res.data.data[2]))
+    console.log(`blender-query : ${anime_query} ${engine_query}`)
+
+    console.log({
+      "set-db-data" : {
+        blender_settings, anime_query, engine_query
+      }
+  })
   }
   return (
     <>

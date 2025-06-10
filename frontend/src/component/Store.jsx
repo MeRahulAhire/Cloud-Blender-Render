@@ -43,6 +43,20 @@ const central_store = create((set, get) => ({
       })
     );
   },
+  set_start_range_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.start_frame = Math.abs(e.target.value);
+      })
+    );
+  },
+  set_end_range_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.range.end_frame = Math.abs(e.target.value);
+      })
+    );
+  },
   set_single_frame: (value) => {
     set(
       produce((state) => {
@@ -50,10 +64,38 @@ const central_store = create((set, get) => ({
       })
     );
   },
+  set_single_frame_value: (e) => {
+    set(
+      produce((state) => {
+        state.blender_settings.animation_sequence.single_frame.frame_value = Math.abs(e.target.value);
+      })
+    );
+  },
   set_anime_query: (value) => {
     set(
       produce((state) => {
         state.anime_query = value;
+      })
+    );
+  },
+  set_engine: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.engine = value;
+      })
+    );
+  },
+  set_cycle_device: (value) => {
+    set(
+      produce((state) => {
+        state.blender_settings.cycle_device = value;
+      })
+    );
+  },
+  set_engine_query: (value) => {
+    set(
+      produce((state) => {
+        state.engine_query = value;
       })
     );
   },
