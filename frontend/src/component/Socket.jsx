@@ -1,20 +1,20 @@
-
-import { io } from 'socket.io-client';
-import central_store from './Store';
+import { io } from "socket.io-client";
+import central_store from "./Store";
 
 let socket = null;
 
 export const initSocket = () => {
-  const base_url = central_store.getState().base_url;
+  const base_url = central_store((state) => state.base_url);
 
   if (!socket) {
     socket = io(base_url, {
-      autoConnect: false,
+      autoConnect: true,
       withCredentials: true,
-      transports: ['websocket'],
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 100,
-      reconnectionDelay: 1000
+      reconnectionDelay: 1000,
+      rememberUpgrade: true
     });
   }
 

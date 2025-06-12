@@ -11,6 +11,7 @@ import axios from "axios";
 import { initSocket } from "./Socket";
 
 export default function Controlpanel() {
+  const socket = initSocket();
   useEffect(() => {
     socket.on("data_sync_confirm", (res) => {
       if (res.status === true) {
@@ -25,9 +26,8 @@ export default function Controlpanel() {
   const engine_query = central_store((state) => state.engine_query);
   const blender_settings = central_store((state) => state.blender_settings);
   const fetch_data = central_store((state) => state.fetch_data);
-  const render_status = central_store(
-    (state) => state.render_status.is_rendering
-  );
+  const render_status = central_store((state) => state.render_status.is_rendering);
+  const blend_file_present = central_store((state) => state.blend_file.is_present);
 
   const download_view = () => {
     set_cp_state(false);
@@ -36,9 +36,10 @@ export default function Controlpanel() {
     set_cp_state(true);
   };
 
-  const socket = initSocket();
+ 
   const toggle_render_process = () => {
-    if (render_status === false) {
+
+    if (render_status === false && blend_file_present === true) {
       socket.emit("blend_engine", {
         data_sync: {
           blender_settings,
@@ -68,7 +69,7 @@ export default function Controlpanel() {
           <div
             className={`render-start-stop ${
               !!render_status ? `stop-render-toggle` : ``
-            }`}
+            } ${!!blend_file_present ? `` : `dim-opacity`}`}
             onClick={toggle_render_process}
           >
             <img src={!!render_status ? Stop : Start} alt="" />

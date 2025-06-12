@@ -25,9 +25,14 @@ export default function Imagepreview() {
     }
 
 
-    const onImage = (res) => set_latest_preview_image(res.image_string);
+    const onImage = (res) => {
+      set_latest_preview_image(res.image_string)
+    };
     const onBlend = (res) => {
-      set_render_stats(res.line);
+      if(res.line != "") {
+        set_render_stats(res.line);
+
+      }
       if (res.finished) fetch_data();
     };
   
@@ -51,7 +56,6 @@ export default function Imagepreview() {
       socket.off("live_base64", onImage);
       socket.off("blend_process", onBlend);
       window.removeEventListener("resize", resizePreviewBox);
-      socket
     };
   }, []);
   return (
