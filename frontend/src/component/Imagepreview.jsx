@@ -1,11 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import "../style/imagepreview.css";
-import reel_image from "../assets/images/reel.png"
-
+import reel_image from "../assets/images/reel.png";
+import { initSocket } from "./Socket";
+import central_store from "./Store";
 
 export default function Imagepreview() {
+  const socket = initSocket();
+  const set_latest_preview_image = central_store(
+    (state) => state.set_latest_preview_image
+  );
+  const latest_preview_image = central_store(
+    (state) => state.latest_preview_image
+  );
+  const fetch_data = central_store((state) => state.fetch_data);
+  const render_stats = central_store((state) => state.render_stats);
+  const set_render_stats = central_store((state) => state.set_render_stats);
+
   useEffect(() => {
     const image_preview_box = document.getElementById("ip-previewbox");
+    
+
+    if (!socket.connected) {
+      socket.connect();
+    }
+
+
+    const onImage = (res) => set_latest_preview_image(res.image_string);
+    const onBlend = (res) => {
+      set_render_stats(res.line);
+      if (res.finished) fetch_data();
+    };
+  
+    socket.on("live_base64", onImage);
+    socket.on("blend_process", onBlend);
 
     function resizePreviewBox() {
       const width = image_preview_box.offsetWidth;
@@ -20,7 +47,12 @@ export default function Imagepreview() {
     window.addEventListener("resize", resizePreviewBox);
 
     // Cleanup
-    return () => window.removeEventListener("resize", resizePreviewBox);
+    return () => {
+      socket.off("live_base64", onImage);
+      socket.off("blend_process", onBlend);
+      window.removeEventListener("resize", resizePreviewBox);
+      socket
+    };
   }, []);
   return (
     <>
@@ -33,24 +65,24 @@ export default function Imagepreview() {
           </div>
         </div>
         <div className="ip-livestatus">
-          <div className="ip-stream-message">
-            Frame:1 | Time:00:41.64 | Mem:56.96M (Peak 118.47) | Sample 69/1024 Frame:1 | Time:00:41.64 | Mem:56.96M (Peak 118.47) | Sample 69/1024
-          </div>
+          <div className="ip-stream-message">{render_stats}</div>
         </div>
         <div className="ip-previewbox" id="ip-previewbox">
-            <div className="ip-startup-context">
-                <div className="ip-startup-context-box">
-                    <img src={reel_image} alt="" />
-                    <p>
-                        Live preview will appear here after submission. <br />Note - Only available if render output is set to image.
-                    </p>
-
-                </div>
-
-            </div>
+          {latest_preview_image != "" ? (
             <div className="ip-image-display">
-                {/* <img src=""/> */}
+              <img src={latest_preview_image} />
             </div>
+          ) : (
+            <div className="ip-startup-context">
+              <div className="ip-startup-context-box">
+                <img src={reel_image} alt="" />
+                <p>
+                  Live preview will appear here after submission. <br />
+                  Note - Only available if render output is set to image.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </>

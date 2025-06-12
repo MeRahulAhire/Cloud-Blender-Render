@@ -3,19 +3,31 @@ import Fileinput from "./Fileinput";
 import Animationtype from "./Animationtype";
 import Enginetype from "./Enginetype";
 import Filebrowser from "./Filebrowser";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Start from "../assets/icons/start.svg";
 import Stop from "../assets/icons/stop.svg";
 import central_store from "./Store";
 import axios from "axios";
+import { initSocket } from "./Socket";
+
 export default function Controlpanel() {
+  useEffect(() => {
+    socket.on("data_sync_confirm", (res) => {
+      if (res.status === true) {
+        fetch_data();
+      }
+    });
+  }, []);
   const [cp_state, set_cp_state] = useState(true);
-  const [render_state, set_render_state] = useState(false);
   const base_url = central_store((state) => state.base_url);
 
-   const anime_query = central_store(state => state.anime_query);
-   const engine_query = central_store(state => state.engine_query);
-   const blender_settings = central_store(state => state.blender_settings)
+  const anime_query = central_store((state) => state.anime_query);
+  const engine_query = central_store((state) => state.engine_query);
+  const blender_settings = central_store((state) => state.blender_settings);
+  const fetch_data = central_store((state) => state.fetch_data);
+  const render_status = central_store(
+    (state) => state.render_status.is_rendering
+  );
 
   const download_view = () => {
     set_cp_state(false);
@@ -23,17 +35,30 @@ export default function Controlpanel() {
   const control_panel_view = () => {
     set_cp_state(true);
   };
-  const testApi = () => {
-    // const { anime_query, engine_query, blender_settings } = central_store.getState();
-  
-    console.log(`blender-query : ${anime_query} ${engine_query}`);
-    console.log({
-      "set-db-data": {
-        blender_settings,
-        anime_query,
-        engine_query
-      }
-    });
+
+  const socket = initSocket();
+  const toggle_render_process = () => {
+    if (render_status === false) {
+      socket.emit("blend_engine", {
+        data_sync: {
+          blender_settings,
+          anime_query,
+          engine_query,
+        },
+      });
+    }
+
+    if (render_status === true) {
+      axios.post(`${base_url}/stop_render`, {})
+      .then((res) => {
+        if (res.status === 200) {
+          fetch_data()
+        }
+      })
+      .catch((err) => {
+        console.log(err)
+      })
+    }
   };
   return (
     <>
@@ -41,10 +66,12 @@ export default function Controlpanel() {
         <div className="dp-control-panel-container">
           {!!cp_state ? <Control_input /> : <Filebrowser />}
           <div
-            className="render-start-stop stop-render-toggl"
-            onClick={testApi}
+            className={`render-start-stop ${
+              !!render_status ? `stop-render-toggle` : ``
+            }`}
+            onClick={toggle_render_process}
           >
-            <img src={!!render_state ? Stop : Start} alt="" />
+            <img src={!!render_status ? Stop : Start} alt="" />
           </div>
           <div className="toggle-panel-box">
             <div className="toggle-switch-section">

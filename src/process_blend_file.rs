@@ -1,19 +1,19 @@
-use crate::db::{ update, get_data };
+use crate::db::{get_data, update};
+use axum::{http::StatusCode, response::IntoResponse};
+use nix::sys::signal::{Signal::SIGTERM, kill};
 use nix::unistd::Pid;
-use serde_json::{ Value, json };
-use socketioxide::extract::{ Data, SocketRef };
-use std::io::{ BufRead, BufReader };
+use serde_json::{Value, json};
+use socketioxide::extract::{Data, SocketRef};
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use std::process::{ Command, Stdio };
+use std::process::{Command, Stdio};
+use std::sync::atomic::{AtomicU32, Ordering};
 use std::thread;
-use std::sync::atomic::{ AtomicU32, Ordering };
-use axum::{ http::StatusCode, response::IntoResponse };
-use nix::sys::signal::{ kill, Signal::SIGTERM };
 
 static CHILD_PID: AtomicU32 = AtomicU32::new(0);
 
 pub fn start_render(socket: &SocketRef) {
-    socket.on("blend-engine", {
+    socket.on("blend_engine", {
         move |socket: SocketRef, Data::<Value>(data)| {
             let file_name = get_data("blend_file.file_name");
             let blend_path = PathBuf::from("blend-folder").join(&file_name);
@@ -26,69 +26,57 @@ pub fn start_render(socket: &SocketRef) {
             let sock = socket.clone();
 
             if blend_process_status == "true" {
-                if
-                    let Err(err) = sock.emit(
-                        "blend-engine-error",
-                        "Blender is already running. Cannot run duplicate task"
-                    )
-                {
+                if let Err(err) = sock.emit(
+                    "blend-engine-error",
+                    "Blender is already running. Cannot run duplicate task",
+                ) {
                     eprintln!("Emit error: {:?}", err);
                     eprintln!("Blend_process_status - {}", err);
                 };
             }
 
             if blend_file_exist == "false" {
-                if
-                    let Err(err) = sock.emit(
-                        "blend-engine-error",
-                        "Blend file not exist. Please upload it first"
-                    )
-                {
+                if let Err(err) = sock.emit(
+                    "blend-engine-error",
+                    "Blend file not exist. Please upload it first",
+                ) {
                     eprintln!("Emit error: {:?}", err);
                     eprintln!("Blend_process_status - {}", err);
                 };
             }
 
             if !data.is_object() || data.as_object().unwrap().is_empty() {
-                if
-                    let Err(err) = sock.emit(
-                        "blend-engine-error",
-                        "Input data field cannot be empty"
-                    )
+                if let Err(err) =
+                    sock.emit("blend-engine-error", "Input data field cannot be empty")
                 {
                     eprintln!("Emit error: {:?}", err);
                 };
             }
 
             // Case 2: "blender-query" key must be present
-            if !data.get("blender-query").is_some() {
-                println!("key 'blender-query' is required");
-                if
-                    let Err(err) = sock.emit(
-                        "blend-engine-error",
-                        "Non valid schema. Enter your blend command with a key `blender-query`"
-                    )
-                {
+            if !data.get("data_sync").is_some() {
+                println!("key 'data_sync' is required");
+                if let Err(err) = sock.emit(
+                    "blend-engine-error",
+                    "Non valid schema. Enter your blend command with a key `data_sync`",
+                ) {
                     eprintln!("Emit error: {:?}", err);
                 };
             }
 
-            let blender_query = data
-                .get("blender-query")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string())
-                .unwrap_or_else(|| {
-                    println!("blender-query' key not found or not a string");
-                    if
-                        let Err(err) = sock.emit(
-                            "blend-engine-error",
-                            "Warning ⚠️ - Engine format and its related details are not provided. Default settings will be applied. Error Message - {err}"
-                        )
-                    {
-                        eprintln!("Emit error: {:?}", err);
-                    }
-                    "".to_string()
-                });
+            let data_sync = data.get("data_sync").unwrap();
+
+            update(json!(data_sync)).unwrap();
+
+            let data_sync_confirm = json!({
+                "status" : true
+            });
+            sock.emit("data_sync_confirm", &data_sync_confirm).unwrap();
+
+            let anime_query = get_data("anime_query");
+            let engine_query = get_data("engine_query");
+
+            let blender_query = format!("{anime_query} {engine_query}");
 
             if blend_file_exist == "true" && blend_process_status == "false" {
                 render_task(&blender_bin, &blend_path, &blender_query, sock.clone());
@@ -101,14 +89,13 @@ pub fn render_task(
     blender_bin: &PathBuf,
     blend_path: &PathBuf,
     blender_query: &str,
-    sock: SocketRef
+    sock: SocketRef,
 ) {
     let blender_bin = blender_bin.clone();
     let blend_path = blend_path.clone();
     let blender_query = blender_query.to_string();
 
-    let set_render_true =
-        json!({
+    let set_render_true = json!({
         "render_status" : {
         "is_rendering" : true
       }
@@ -136,7 +123,7 @@ pub fn render_task(
             for line in reader.lines().flatten() {
                 // println!("{}", line);
                 let payload = json!({ "line": line });
-                if let Err(err) = sock.emit("blend-process", &payload) {
+                if let Err(err) = sock.emit("blend_process", &payload) {
                     eprintln!("Emit error: {:?}", err);
                 }
             }
@@ -147,26 +134,25 @@ pub fn render_task(
             let reader = BufReader::new(err_out);
             for line in reader.lines().flatten() {
                 eprintln!("BLENDER ERR: {}", line);
-                let payload = json!({ "error": line });
-                let _ = sock.emit("blend-process", &payload);
+                let payload = json!({ "line": line });
+                let _ = sock.emit("blend_process", &payload);
             }
         }
 
         // Wait for Blender to finish
-        let set_render_false =
-            json!({
-                    "render_status" : {
-                        "is_rendering" : false
-                    }
-                });
+        let set_render_false = json!({
+            "render_status" : {
+                "is_rendering" : false
+            }
+        });
 
         update(set_render_false).unwrap();
 
         // Wait for Blender to finish
         let exit_status = child.wait().expect("Blender process failed");
-        let exit_message = json!({ "line": "Blender exited successfully" });
+        let exit_message = json!({ "line": "Blender exited successfully", "finished" : true });
 
-        if let Err(err) = sock.emit("blend-process", &exit_message) {
+        if let Err(err) = sock.emit("blend_process", &exit_message) {
             eprintln!("Emit error: {:?}", err);
         }
         println!("Blender exited with status: {:?}", exit_status);
@@ -178,19 +164,23 @@ pub async fn stop_render() -> impl IntoResponse {
 
     // If no PID has been set yet, return 400 Bad Request with a JSON error
     if pid == 0 {
-        return (StatusCode::BAD_REQUEST, "No render task are active".to_string());
+        return (
+            StatusCode::BAD_REQUEST,
+            "No render task are active".to_string(),
+        );
     }
 
     // Attempt to send SIGTERM
     let target = Pid::from_raw(pid as i32);
     let (data, status) = match kill(target, SIGTERM) {
-        Ok(()) => { ("Blender exited successfully".to_string(), StatusCode::OK) }
-        Err(err) => {
-            (
-                format!("Failed to cancel render. Please try again. Error message : {}", err),
-                StatusCode::INTERNAL_SERVER_ERROR        
-            )
-        }
+        Ok(()) => ("Blender exited successfully".to_string(), StatusCode::OK),
+        Err(err) => (
+            format!(
+                "Failed to cancel render. Please try again. Error message : {}",
+                err
+            ),
+            StatusCode::INTERNAL_SERVER_ERROR,
+        ),
     };
 
     (status, data)

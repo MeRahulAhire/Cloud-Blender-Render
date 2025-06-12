@@ -3,10 +3,17 @@ import { produce } from "immer";
 import axios from "axios";
 
 // Toggle this to 'prod' when deploying
-const MODE = "dev"; // or 'prod'
+const is_local = () => {
+  const hostname = window.location.hostname;
+  return (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname.startsWith("192.168.")
+  );
+};
 
 const central_store = create((set, get) => ({
-  base_url: MODE === "dev" ? "http://localhost:4000" : window.location.origin,
+  base_url: is_local() ? "http://localhost:4000" : window.location.origin,
   has_fetched: false, // ✅ new flag
   upload_percentage: 0,
 
@@ -119,6 +126,13 @@ const central_store = create((set, get) => ({
         }
       })
     );
+  },
+
+  set_latest_preview_image: (value) => {
+    set(produce((state) => {state.latest_preview_image = value}));
+  },
+  set_render_stats: (value) => {
+    set(produce((state) => {state.render_stats = value}));
   },
 }));
 

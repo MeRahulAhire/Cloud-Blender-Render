@@ -90,7 +90,7 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
 
     update(set_live_image).unwrap();
 
-    if let Err(err) = sock.emit("live-base64", &live_image_data) {
+    if let Err(err) = sock.emit("live_base64", &live_image_data) {
         eprintln!("Emit error: {:?}", err);
     }
 }

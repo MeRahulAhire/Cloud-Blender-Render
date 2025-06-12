@@ -91,7 +91,7 @@ export default function Enginetype() {
           EEVEE NEXT
         </div>
       </div>
-      <div className={`cycle-subsection ${!!blend_file_present && engine_type === `CYCLES` ? "" : `dim-opacity`}` }>
+      <div className={`cycle-subsection ${!!blend_file_present && engine_type === `CYCLES` ? "" : `dim-opacity`} ${!!render_status ? `dim-opacity` : ``}` }>
         <div className="cycles-type-head">Cycles device</div>
         <div className="cycle-type-tags-box">
           <div className={`cycle-type-tags ${cycle_device === `OPTIX` ? `cycle-type-tags-toggle ` : ``}`} onClick={set_cycle_device_as_optix} >OPTIX</div>
