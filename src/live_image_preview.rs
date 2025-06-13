@@ -69,12 +69,12 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
         .round() as usize;
 
     let resized_image = image.resize((new_width, new_height));
-    resized_image.save("./temp/sample.png").unwrap();
+    resized_image.save("./temp/sample.webp").unwrap();
 
-    let sample_image_path = Path::new("./temp/sample.png");
+    let sample_image_path = Path::new("./temp/sample.webp");
     let sample_image_data = fs::read(sample_image_path).unwrap();
 
-    let png_mime = "data:image/png;base64";
+    let png_mime = "data:image/webp;base64";
     let base64_string = general_purpose::STANDARD.encode(sample_image_data);
     let image_string = format!("{},{}", png_mime, base64_string);
 
@@ -91,6 +91,6 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     update(set_live_image).unwrap();
 
     if let Err(err) = sock.emit("live_base64", &live_image_data) {
-        eprintln!("Emit error: {:?}", err);
+        eprintln!("live image error: {:?}", err);
     }
 }

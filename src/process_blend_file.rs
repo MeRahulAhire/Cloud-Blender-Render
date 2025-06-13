@@ -127,8 +127,6 @@ pub fn render_task(
                 // if let Err(err) = sock.emit("blend_process", &payload) {
                 //     eprintln!("Emit error: {:?}", err);
                 // }
-
-
             }
         }
 

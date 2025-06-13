@@ -27,9 +27,11 @@ import { useEffect } from "react";
 export default function App() {
   const fetch_data = central_store((state) => state.fetch_data);
   const has_fetched = central_store((state) => state.has_fetched);
+  const set_rendered_image_list = central_store(state => state.set_rendered_image_list);
 
   useEffect(() => {
     fetch_data();
+    set_rendered_image_list();
   }, []);
 
   if (has_fetched === false) {

@@ -29,7 +29,7 @@ async fn socket_handler(socket: SocketRef) {
     // Live Image Preview
     live_image_preview::live_image_preview_handler(socket.clone());
 
-    live_render_stats::render_stats(socket.clone());
+    live_render_stats::render_stats_watcher(socket.clone());
 }
 
 #[tokio::main]

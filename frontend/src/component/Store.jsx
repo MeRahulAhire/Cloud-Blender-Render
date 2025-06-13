@@ -17,15 +17,27 @@ const central_store = create((set, get) => ({
   has_fetched: false, // ✅ new flag
   upload_percentage: 0,
 
-  fetch_data: async (payload = {}) => {
+  fetch_data: async () => {
     const base_url = get().base_url;
-    const res = await axios.post(`${base_url}/get_db`, payload);
+    const res = await axios.post(`${base_url}/get_db`, {});
     set(
       produce((state) => {
         Object.assign(state, res.data);
         state.has_fetched = true;
       })
     );
+  },
+  set_rendered_image_list: async () => {
+    const base_url = get().base_url;
+    await axios.post(`${base_url}/render_list`, {}).then((res) => {
+      if (res.status === 200) {
+        set(
+          produce((state) => {
+            state.rendered_image_list = res.data.data;
+          })
+        );
+      }
+    });
   },
 
   set_upload_percentage: (value) => {
@@ -129,10 +141,18 @@ const central_store = create((set, get) => ({
   },
 
   set_latest_preview_image: (value) => {
-    set(produce((state) => {state.latest_preview_image = value}));
+    set(
+      produce((state) => {
+        state.latest_preview_image = value;
+      })
+    );
   },
   set_render_stats: (value) => {
-    set(produce((state) => {state.render_stats = value}));
+    set(
+      produce((state) => {
+        state.render_stats = value;
+      })
+    );
   },
 }));
 

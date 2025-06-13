@@ -15,6 +15,7 @@ export default function Imagepreview() {
   const fetch_data = central_store((state) => state.fetch_data);
   const render_stats = central_store((state) => state.render_stats);
   const set_render_stats = central_store((state) => state.set_render_stats);
+  const set_rendered_image_list = central_store(state => state.set_rendered_image_list);
 
   useEffect(() => {
     const image_preview_box = document.getElementById("ip-previewbox");
@@ -24,24 +25,22 @@ export default function Imagepreview() {
       socket.connect();
     }
 
-    const onImage = (res) => {
-      set_latest_preview_image(res.image_string)
-      // console.log(res)
-      fetch_data()
+    const image_preview_socket = (res) => {
+      set_latest_preview_image(res.image_string);
+      set_rendered_image_list();
     };
-    const onBlend = (res) => {
-      console.log(res)
-      if(res.line != "") {
-        set_render_stats(res.line);
+    const render_stats_socket = (res) => {
+      if(res.render_stats != "") {
+        set_render_stats(res.render_stats);
 
       }
-      if (res.finished) {
+      if (res.render_stats === "Blender quit") {
         fetch_data()
       };
     };
   
-    socket.on("live_base64", onImage);
-    socket.on("blend_process", onBlend);
+    socket.on("live_base64", image_preview_socket);
+    socket.on("render_stats", render_stats_socket);
 
     function resizePreviewBox() {
       const width = image_preview_box.offsetWidth;
@@ -57,8 +56,8 @@ export default function Imagepreview() {
 
     // Cleanup
     return () => {
-      socket.off("live_base64", onImage);
-      socket.off("blend_process", onBlend);
+      socket.off("live_base64", image_preview_socket);
+      socket.off("blend_process", render_stats_socket);
       window.removeEventListener("resize", resizePreviewBox);
     };
   }, []);

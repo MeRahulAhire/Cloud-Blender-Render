@@ -37,7 +37,7 @@ pub fn schema_handler() -> RedisResult<()> {
         "is_rendering" : false
       },
       "latest_preview_image" :"",
-      "rendered_images" : [],
+      "rendered_image_list" : [],
       "anime_query" : "",
       "engine_query" : "",
       "render_stats" : ""

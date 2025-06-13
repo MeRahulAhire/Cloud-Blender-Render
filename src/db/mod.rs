@@ -1,5 +1,5 @@
 mod app_state_schema;
-use redis::{ Client, Commands, JsonCommands, PubSubCommands, RedisError, RedisResult };
+use redis::{ Client, Commands, JsonCommands, RedisError, RedisResult };
 use serde_json::Value;
 pub mod get_app_state;
 
