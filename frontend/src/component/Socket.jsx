@@ -14,7 +14,7 @@ export const initSocket = () => {
       reconnection: true,
       reconnectionAttempts: 100,
       reconnectionDelay: 1000,
-      rememberUpgrade: true
+      rememberUpgrade: true,
     });
   }
 

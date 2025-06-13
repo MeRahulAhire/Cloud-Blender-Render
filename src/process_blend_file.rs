@@ -122,10 +122,13 @@ pub fn render_task(
             let reader = BufReader::new(out);
             for line in reader.lines().flatten() {
                 // println!("{}", line);
-                let payload = json!({ "line": line });
-                if let Err(err) = sock.emit("blend_process", &payload) {
-                    eprintln!("Emit error: {:?}", err);
-                }
+                let payload = json!({ "render_stats": line });
+                update(payload).unwrap();
+                // if let Err(err) = sock.emit("blend_process", &payload) {
+                //     eprintln!("Emit error: {:?}", err);
+                // }
+
+
             }
         }
 
@@ -134,8 +137,10 @@ pub fn render_task(
             let reader = BufReader::new(err_out);
             for line in reader.lines().flatten() {
                 eprintln!("BLENDER ERR: {}", line);
-                let payload = json!({ "line": line });
-                let _ = sock.emit("blend_process", &payload);
+                // let payload = json!({ "line": line });
+                // let _ = sock.emit("blend_process", &payload);
+                let payload = json!({ "render_stats": line });
+                update(payload).unwrap();
             }
         }
 
@@ -151,6 +156,8 @@ pub fn render_task(
         // Wait for Blender to finish
         let exit_status = child.wait().expect("Blender process failed");
         let exit_message = json!({ "line": "Blender exited successfully", "finished" : true });
+
+        update(exit_message.clone()).unwrap();
 
         if let Err(err) = sock.emit("blend_process", &exit_message) {
             eprintln!("Emit error: {:?}", err);

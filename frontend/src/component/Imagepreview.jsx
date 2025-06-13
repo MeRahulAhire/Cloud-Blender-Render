@@ -24,16 +24,20 @@ export default function Imagepreview() {
       socket.connect();
     }
 
-
     const onImage = (res) => {
       set_latest_preview_image(res.image_string)
+      // console.log(res)
+      fetch_data()
     };
     const onBlend = (res) => {
+      console.log(res)
       if(res.line != "") {
         set_render_stats(res.line);
 
       }
-      if (res.finished) fetch_data();
+      if (res.finished) {
+        fetch_data()
+      };
     };
   
     socket.on("live_base64", onImage);

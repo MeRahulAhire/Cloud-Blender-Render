@@ -1,5 +1,5 @@
 mod app_state_schema;
-use redis::{ Client, JsonCommands, RedisError, RedisResult };
+use redis::{ Client, Commands, JsonCommands, PubSubCommands, RedisError, RedisResult };
 use serde_json::Value;
 pub mod get_app_state;
 
@@ -18,6 +18,11 @@ pub fn update(data: Value) -> RedisResult<()> {
         for (key, value) in map {
             let path = format!("$.{}", key);
             let _: () = con.json_set("items", &path, &value)?;
+
+            if key == "render_stats"{
+                let payload = serde_json::to_string(&value)?;
+                let _: () = con.publish("render_stats", payload)?;
+            }
         }
     } else {
         return Err(

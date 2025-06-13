@@ -14,6 +14,7 @@ export default function Controlpanel() {
   const socket = initSocket();
   useEffect(() => {
     socket.on("data_sync_confirm", (res) => {
+      console.log(res)
       if (res.status === true) {
         fetch_data();
       }

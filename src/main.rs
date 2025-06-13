@@ -4,6 +4,7 @@ mod live_image_preview;
 mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
+mod live_render_stats;
 
 use axum::{
     Router,
@@ -27,6 +28,8 @@ async fn socket_handler(socket: SocketRef) {
 
     // Live Image Preview
     live_image_preview::live_image_preview_handler(socket.clone());
+
+    live_render_stats::render_stats(socket.clone());
 }
 
 #[tokio::main]
