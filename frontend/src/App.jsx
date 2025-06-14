@@ -1,23 +1,3 @@
-// import Home from "./component/Home";
-// import "./App.css";
-// import central_store from "./component/Store";
-// import { useEffect } from "react";
-// export default function App() {
-//   const {fetchData} = central_store();
-
-//   useEffect(() => {
-//     fetchData();
-//   }, [])
-//   return (
-//     <>
-//       <div className="app-global-window">
-//         <div className="app-max-width">
-//           <Home />
-//         </div>
-//       </div>
-//     </>
-//   );
-// }
 
 import Home from "./component/Home";
 import "./App.css";

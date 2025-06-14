@@ -36,6 +36,7 @@ const central_store = create((set, get) => ({
             state.rendered_image_list = res.data.data;
           })
         );
+        // console.log(get().rendered_image_list)
       }
     });
   },
