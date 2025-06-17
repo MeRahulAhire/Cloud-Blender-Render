@@ -1,0 +1,15 @@
+.gpu-terminal-container {
+height: 100vh;
+width: 100%;
+display: flex;
+align-items: center;
+justify-content: center;
+background-color:  rgb(31, 36, 48);
+}
+
+.terminal-section{
+height: calc(100% - 10rem);
+width: calc(100% - 10rem);
+background-color: rgb(13, 16, 23); 
+border-radius: 2rem;
+}

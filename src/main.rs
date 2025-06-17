@@ -5,6 +5,7 @@ mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
 mod live_render_stats;
+mod live_gpu_stats;
 
 use axum::{
     Router,
@@ -29,7 +30,11 @@ async fn socket_handler(socket: SocketRef) {
     // Live Image Preview
     live_image_preview::live_image_preview_handler(socket.clone());
 
+    // Blender Render Stats 
     live_render_stats::render_stats_watcher(socket.clone());
+
+    // GPU and CPU stats
+    live_gpu_stats::live_gpu_stats_handler(socket.clone());
 }
 
 #[tokio::main]

@@ -2,7 +2,7 @@ import "../style/home.css";
 import Navbar from "./Navbar";
 import Imagepreview from "./Imagepreview";
 import Controlpanel from "./Controlpanel";
-
+import Gputerminal from "./Gputerminal"
 export default function Home() {
   return (
     <>
@@ -17,6 +17,7 @@ export default function Home() {
           </div>
         </div>
       </div>
+        <Gputerminal/>
     </>
   );
 }
