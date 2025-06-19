@@ -5,7 +5,7 @@ mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
 mod live_render_stats;
-mod live_gpu_stats;
+mod machine_lookup;
 
 use axum::{
     Router,
@@ -34,7 +34,7 @@ async fn socket_handler(socket: SocketRef) {
     live_render_stats::render_stats_watcher(socket.clone());
 
     // GPU and CPU stats
-    live_gpu_stats::live_gpu_stats_handler(socket.clone());
+    machine_lookup::live_network_stats(socket.clone());
 }
 
 #[tokio::main]

@@ -13,3 +13,38 @@ width: calc(100% - 10rem);
 background-color: rgb(13, 16, 23); 
 border-radius: 2rem;
 }
+
+/* Make the overall terminal a flex column that fills its parent */
+.xterm {
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* The viewport that actually holds the rows */
+.xterm .xterm-viewport {
+  flex: 1 1 auto !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* The element that contains all the row divs */
+.xterm .xterm-screen,
+.xterm .xterm-rows {
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Canvas layers (cursor, selection, etc.) also fill 100% */
+.xterm canvas {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
