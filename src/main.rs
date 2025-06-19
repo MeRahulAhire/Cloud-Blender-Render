@@ -33,8 +33,14 @@ async fn socket_handler(socket: SocketRef) {
     // Blender Render Stats 
     live_render_stats::render_stats_watcher(socket.clone());
 
-    // GPU and CPU stats
+    // Network Stats
     machine_lookup::live_network_stats(socket.clone());
+
+    machine_lookup::live_cpu_stats(socket.clone());
+
+    machine_lookup::live_ram_stats(socket.clone());
+
+    machine_lookup::live_gpu_stats(socket.clone());
 }
 
 #[tokio::main]
