@@ -1,22 +1,65 @@
 .gpu-terminal-container {
-height: 100vh;
-width: 100%;
-background-color:  rgb(31, 36, 48);
-display: grid;
-grid-template-areas: 
-  'a b'
-  'c d'
-  'e e';
+  height: 100vh;
+  width: 100%;
+  background-color: #0f0f0f;
+  display: grid;
+  /* grid-template-rows: auto auto 1fr; */
+  grid-template-areas:
+    "a b"
+    "c d"
+    "e e";
 }
 
-.cpu-section{
+.cpu-section {
   grid-area: a;
-  background-image: url("https://images.pexels.com/photos/28888994/pexels-photo-28888994.jpeg");
-
+  height: 33.35vh;
+  width: 100%;
 }
 
-.ram-section{
+.cpu-chart {
+  height: calc(100% - 1.5rem);
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  border-radius: 1rem;
+  width: calc(100% - 1.5rem);
+  margin-left: 1rem;
+  margin-right: 0.5rem;
+  overflow: hidden;
+
+  background: #212121;
+}
+
+/* .cpu-chart > div {
+  width: 100% !important;
+  height: 100% !important;
+} */
+
+.ram-section {
   grid-area: b;
+  /* height: 35vh; */
+}
+.gpu-util-section {
+  grid-area: c;
+  height: 33.35vh;
 }
 
+.gpu-mem-section {
+  grid-area: d;
+  height: 33.35vh;
+}
+.network-section {
+  grid-area: e;
+  height: 33.35vh;
+  width: 100%;
+}
 
+.network-chart {
+  width: calc(100% - 2rem);
+  margin-left: 1rem;
+  margin-right: 1rem;
+  height: calc(100% - 1.5rem);
+  margin-top: 0.5rem;
+  margin-bottom: 1rem;
+  border-radius: 1rem;
+  overflow: hidden;
+}
