@@ -19,7 +19,12 @@ export default function Gputerminal() {
   return (
     <>
       <div className="gpu-terminal-container">
-        <div className="terminal-section" ></div>
+        <div className="cpu-section"></div>
+        <div className="ram-section"></div>
+        <div className="gpu-util-section"></div>
+        <div className="gpu-mem-section"></div>
+        <div className="network-section"></div>
+        .
       </div>
     </>
   );

@@ -34,13 +34,15 @@ async fn socket_handler(socket: SocketRef) {
     live_render_stats::render_stats_watcher(socket.clone());
 
     // Network Stats
-    machine_lookup::live_network_stats(socket.clone());
+    machine_lookup::network_stats(socket.clone());
 
-    machine_lookup::live_cpu_stats(socket.clone());
+    machine_lookup::cpu_stats(socket.clone());
 
-    machine_lookup::live_ram_stats(socket.clone());
+    machine_lookup::ram_stats(socket.clone());
 
-    machine_lookup::live_gpu_stats(socket.clone());
+    machine_lookup::gpu_util_stats(socket.clone());
+
+    machine_lookup::gpu_mem_stats(socket.clone());
 }
 
 #[tokio::main]
