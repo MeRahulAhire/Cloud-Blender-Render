@@ -1,19 +1,28 @@
-.gpu-terminal-container {
+/* .gpu-terminal-container {
   height: 100vh;
   width: 100%;
   background-color: #0f0f0f;
   display: grid;
-  /* grid-template-rows: auto auto 1fr; */
   grid-template-areas:
     "a b"
     "c d"
     "e e";
+} */
+
+.terminal-top-section{
+  width: 100%;
+  height: 40vh;
+  min-height: 300px;
+  display: flex;
+  flex-direction: row;
+
 }
 
 .cpu-section {
   grid-area: a;
-  height: 33.35vh;
-  width: 100%;
+  height: 100%;
+  width: 50%;
+  min-width: 0;
 }
 
 .cpu-chart {
@@ -29,27 +38,65 @@
   background: #212121;
 }
 
-/* .cpu-chart > div {
-  width: 100% !important;
-  height: 100% !important;
-} */
+
 
 .ram-section {
-  grid-area: b;
-  /* height: 35vh; */
+  height: 100%;
+  width: 50%;
 }
+.ram-chart{
+  width: calc(100% - 1.5rem);
+  height: calc(100% - 1.5rem);
+  margin-left: 0.5rem;
+  margin-top: 1rem;
+  background-color: #212121;
+  border-radius: 1rem;
+  overflow: hidden;
+
+
+}
+.terminal-mid-section{
+  width: 100%;
+  height: 40vh;
+  min-height: 300px;
+  display: flex;
+  flex-direction: row;
+
+}
+
 .gpu-util-section {
-  grid-area: c;
-  height: 33.35vh;
+ height: 100%;
+ width: 50%;
+}
+.gpu-util-chart{
+  height: calc(100% - 1rem);
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  border-radius: 1rem;
+  width: calc(100% - 1.5rem);
+  margin-left: 1rem;
+  margin-right: 0.5rem;
+  overflow: hidden;
+  background: #212121;
 }
 
 .gpu-mem-section {
-  grid-area: d;
-  height: 33.35vh;
+  height: 100%;
+ width: 50%;
 }
+.gpu-mem-chart{
+  width: calc(100% - 1.5rem);
+  height: calc(100% - 1rem);
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  background-color: #212121;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
 .network-section {
-  grid-area: e;
-  height: 33.35vh;
+  height: 40vh;
+  min-height: 300px;
   width: 100%;
 }
 
@@ -62,4 +109,65 @@
   margin-bottom: 1rem;
   border-radius: 1rem;
   overflow: hidden;
+}
+
+@media screen and (max-width: 768px ) {
+  .terminal-top-section{
+    flex-direction: column;
+    height: 80vh;
+    min-height: 600px;
+  }
+  .cpu-section{
+    width: 100%;
+  }
+  .cpu-chart{
+    width: calc(100% - 2rem);
+    margin-right: 1rem;
+  }
+  .ram-section{
+    width: 100%;
+  }
+  .ram-chart{
+    width: calc(100% - 2rem);
+    height: calc(100% - 1rem);
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-top: 0.5rem;
+    background-color: #212121;
+    border-radius: 1rem;
+    overflow: hidden;
+  
+  
+  }
+  .terminal-mid-section{
+    flex-direction: column;
+    height: 80vh;
+    min-height: 600px;
+  }
+  .gpu-util-section {
+    width: 100%;
+   }
+   .gpu-util-chart{
+     height: calc(100% - 1rem);
+     margin-top: 0.5rem;
+     margin-bottom: 0.5rem;
+     width: calc(100% - 2rem);
+     margin-left: 1rem;
+     margin-right: 1rem;
+   }
+   
+   .gpu-mem-section {
+    width: 100%;
+   }
+   .gpu-mem-chart{
+     width: calc(100% - 2rem);
+     height: calc(100% - 1rem);
+     margin-left: 1rem;
+     margin-right: 1rem;
+     margin-top: 0.5rem;
+     margin-bottom: 0.5rem;
+     
+   }
+
+  
 }

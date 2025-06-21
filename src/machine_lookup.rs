@@ -102,7 +102,7 @@ pub fn ram_stats(socket: SocketRef) {
             let total_bytes = system.total_memory(); // from KB to Bytes
             let used_bytes = system.total_memory() - system.available_memory();
 
-            let total_gb = (total_bytes as f64 / 1_073_741_824.0 * 100.0) / 100.0; // 1 GB = 2^30 bytes
+            let total_gb = (total_bytes as f64 / 1_073_741_824.0 * 100.0).round() / 100.0; // 1 GB = 2^30 bytes
             let used_gb = (used_bytes as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
 
             let data = json!({
