@@ -1,11 +1,11 @@
 mod db;
 mod delete_blend_file;
 mod live_image_preview;
+mod live_render_stats;
+mod machine_lookup;
 mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
-mod live_render_stats;
-mod machine_lookup;
 
 use axum::{
     Router,
@@ -30,18 +30,22 @@ async fn socket_handler(socket: SocketRef) {
     // Live Image Preview
     live_image_preview::live_image_preview_handler(socket.clone());
 
-    // Blender Render Stats 
+    // Blender Render Stats
     live_render_stats::render_stats_watcher(socket.clone());
 
     // Network Stats
     machine_lookup::network_stats(socket.clone());
 
+    // CPU Stats
     machine_lookup::cpu_stats(socket.clone());
 
+    // RAM stats
     machine_lookup::ram_stats(socket.clone());
 
+    // GPU utilisation stats
     machine_lookup::gpu_util_stats(socket.clone());
 
+    // GPU memory usage.
     machine_lookup::gpu_mem_stats(socket.clone());
 }
 
@@ -54,7 +58,8 @@ async fn main() {
     let cors = CorsLayer::new()
         .allow_origin(origin)
         .allow_methods([Method::GET, Method::POST, Method::OPTIONS])
-        .allow_headers([http::header::CONTENT_TYPE]);
+        .allow_headers([http::header::CONTENT_TYPE])
+        .allow_credentials(true);
 
     let (socket_layer, io) = SocketIoBuilder::new().max_payload(20_000_000).build_layer();
 

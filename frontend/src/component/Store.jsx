@@ -19,7 +19,7 @@ const central_store = create((set, get) => ({
 
   fetch_data: async () => {
     const base_url = get().base_url;
-    const res = await axios.post(`${base_url}/get_db`, {});
+    const res = await axios.post(`${base_url}/get_db`, {}, {withCredentials :true});
     set(
       produce((state) => {
         Object.assign(state, res.data);
@@ -29,7 +29,7 @@ const central_store = create((set, get) => ({
   },
   set_rendered_image_list: async () => {
     const base_url = get().base_url;
-    await axios.post(`${base_url}/render_list`, {}).then((res) => {
+    await axios.post(`${base_url}/render_list`, {}, {withCredentials: true}).then((res) => {
       if (res.status === 200) {
         set(
           produce((state) => {

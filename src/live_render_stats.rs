@@ -22,6 +22,7 @@ pub fn render_stats_watcher (socket: SocketRef) {
 
             if let Err(err) = sock.emit("render_stats", &data){
                 eprintln!("render stats error: {:?}", err);
+                break;
             }
         }
     });

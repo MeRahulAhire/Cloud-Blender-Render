@@ -49,9 +49,12 @@ export default function Fileinput() {
             );
             set_upload_percentage(percentage);
           },
+          withCredentials : true,
         })
         .then((res) => {
-          fetch_data();
+          if (res.status === 200) {
+            fetch_data();
+          }
         })
         .catch((err) => {
           console.error("Upload failed", err);
@@ -213,11 +216,13 @@ const FileBtn = ({
   const delete_blend_file = () => {
     if (render_status === false) {
       axios
-        .post(`${base_url}/delete_blend_file`, {})
+        .post(`${base_url}/delete_blend_file`, {}, {withCredentials : true})
         .then((res) => {
-          // console.log(upload_percentage)
-          set_upload_percentage(0);
-          fetch_data();
+          if (res.status === 200) {
+            // console.log(upload_percentage)
+            set_upload_percentage(0);
+            fetch_data();
+          }
         })
         .catch((err) => {
           console.log(err);

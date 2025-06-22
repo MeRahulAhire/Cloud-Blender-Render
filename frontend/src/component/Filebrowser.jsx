@@ -3,6 +3,7 @@ import Link from "../assets/icons/link.svg";
 import Download from "../assets/icons/download.svg";
 import central_store from "./Store";
 import { useCallback, useEffect, useState } from "react";
+import axios from "axios";
 
 export default function Filebrowser() {
   const rendered_image_list = central_store(
@@ -33,8 +34,8 @@ export default function Filebrowser() {
 
           for (let i = 0; i < rendered_image_list.length; i++) {
             const file_name = rendered_image_list[i];
-            const response = await fetch(`${base_url}/images/${file_name}`);
-            const blob = await response.blob();
+            const response = await axios.get(`${base_url}/images/${file_name}`, {withCredentials: true, responseType: 'blob'});
+            const blob = await response.data;
 
             const file_handle = await dir_handle.getFileHandle(file_name, {
               create: true,
@@ -51,8 +52,8 @@ export default function Filebrowser() {
         } else {
           for (let i = 0; i < rendered_image_list.length; i++) {
             const file_name = rendered_image_list[i];
-            const response = await fetch(`${base_url}/images/${file_name}`);
-            const blob = await response.blob();
+            const response = await axios.get(`${base_url}/images/${file_name}`, {withCredentials: true, responseType: 'blob'});
+            const blob = await response.data;
             const url = URL.createObjectURL(blob);
 
             const a = document.createElement("a");

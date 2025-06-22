@@ -50,7 +50,7 @@ export default function Controlpanel() {
     }
 
     if (render_status === true) {
-      axios.post(`${base_url}/stop_render`, {})
+      axios.post(`${base_url}/stop_render`, {}, {withCredentials : true})
       .then((res) => {
         if (res.status === 200) {
           fetch_data()

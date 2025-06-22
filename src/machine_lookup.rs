@@ -1,65 +1,10 @@
 use netdev::get_default_interface;
-use serde_json::{json, Value, Map};
+use nvml_wrapper::Nvml;
+use regex::Regex;
+use serde_json::{Map, Value, json};
 use socketioxide::extract::SocketRef;
 use std::{thread, time::Duration};
 use sysinfo::{Networks, System};
-use nvml_wrapper::Nvml;
-use regex::Regex;
-
-pub fn network_stats(socket: SocketRef) {
-    thread::spawn(move || {
-        let sock = socket;
-
-        let default_interface = match get_default_interface() {
-            Ok(iface) => iface.name,
-            Err(err) => {
-                eprintln!(
-                    "Could not find default network adapter. Error message - {}",
-                    err
-                );
-                return;
-            }
-        };
-        let mut network = Networks::new();
-        network.refresh(true);
-
-        loop {
-            network.refresh(true);
-
-            let initial_value = match network.get(&default_interface) {
-                Some(data) => (data.total_received(), data.total_transmitted()),
-                None => {
-                    eprintln!("Interface {} not found", &default_interface);
-                    thread::sleep(Duration::from_secs(1));
-                    continue;
-                }
-            };
-
-            thread::sleep(Duration::from_secs(1));
-            network.refresh(true);
-
-            if let Some(data) = network.get(&default_interface) {
-                let rx_data = data.total_received().saturating_sub(initial_value.0);
-                let tx_data = data.total_transmitted().saturating_sub(initial_value.1);
-
-                let rx_mbit = (rx_data * 8) / 1_000_000;
-                let tx_mbit = (tx_data * 8) / 1_000_000;
-
-                let data = json!({
-                    "download_speed" : rx_mbit,
-                    "upload_speed" : tx_mbit
-                });
-
-                // println!("↓ {:.3} Mbit/s ↑ {:.3} Mbit/s", rx_mbit, tx_mbit); Debug 
-
-                if let Err(err) = sock.emit("network_stats", &data) {
-                    eprintln!("Network stats error - {}", err);
-                }
-            }
-        }
-    });
-}
-
 
 pub fn cpu_stats(socket: SocketRef) {
     thread::spawn(move || {
@@ -83,6 +28,7 @@ pub fn cpu_stats(socket: SocketRef) {
 
             if let Err(err) = sock.emit("cpu_stats", &data) {
                 eprintln!("CPU stats error - {}", err);
+                break;
             }
 
             thread::sleep(Duration::from_secs(1));
@@ -114,13 +60,13 @@ pub fn ram_stats(socket: SocketRef) {
 
             if let Err(err) = sock.emit("ram_stats", &data) {
                 eprintln!("RAM stats error - {}", err);
+                break;
             }
 
             thread::sleep(Duration::from_secs(1));
         }
     });
 }
-
 
 pub fn gpu_util_stats(socket: SocketRef) {
     thread::spawn(move || {
@@ -189,13 +135,13 @@ pub fn gpu_util_stats(socket: SocketRef) {
             // println!("🖥️ GPU Stats: {}", &data);
             if let Err(err) = sock.emit("gpu_util_stats", &data) {
                 eprintln!("GPU stats emit error: {}", err);
+                break;
             }
 
             thread::sleep(Duration::from_secs(1));
         }
     });
 }
-
 
 pub fn gpu_mem_stats(socket: SocketRef) {
     thread::spawn(move || {
@@ -211,7 +157,8 @@ pub fn gpu_mem_stats(socket: SocketRef) {
         };
 
         // Same regex for display names
-        let re = Regex::new(r"(?xi)
+        let re = Regex::new(
+            r"(?xi)
             ^(?:NVIDIA|Tesla)\s+            # drop leading 'NVIDIA ' or 'Tesla '
             (?:GeForce\s+)?                # optionally drop 'GeForce '
             (?P<model>
@@ -228,7 +175,9 @@ pub fn gpu_mem_stats(socket: SocketRef) {
               | V100(?:-FHHL|-PCIE|-SXM2)?
             )
             (?:\b|$)
-        ").unwrap();
+        ",
+        )
+        .unwrap();
 
         loop {
             let count = match nvml.device_count() {
@@ -256,7 +205,8 @@ pub fn gpu_mem_stats(socket: SocketRef) {
                                     .to_string()
                             };
                             // used memory in bytes -> GB
-                            let used_gb = (mem_info.used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
+                            let used_gb =
+                                (mem_info.used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
                             mem_map.insert(display, json!(used_gb));
                         }
                     }
@@ -267,9 +217,65 @@ pub fn gpu_mem_stats(socket: SocketRef) {
             // println!("🖥️ GPU Mem Stats (GB): {}", data);
             if let Err(err) = sock.emit("gpu_mem_stats", &data) {
                 eprintln!("GPU mem stats emit error: {}", err);
+                break;
             }
 
             thread::sleep(Duration::from_secs(1));
+        }
+    });
+}
+
+pub fn network_stats(socket: SocketRef) {
+    thread::spawn(move || {
+        let sock = socket;
+
+        let default_interface = match get_default_interface() {
+            Ok(iface) => iface.name,
+            Err(err) => {
+                eprintln!(
+                    "Could not find default network adapter. Error message - {}",
+                    err
+                );
+                return;
+            }
+        };
+        let mut network = Networks::new();
+        network.refresh(true);
+
+        loop {
+            network.refresh(true);
+
+            let initial_value = match network.get(&default_interface) {
+                Some(data) => (data.total_received(), data.total_transmitted()),
+                None => {
+                    eprintln!("Interface {} not found", &default_interface);
+                    thread::sleep(Duration::from_secs(1));
+                    continue;
+                }
+            };
+
+            thread::sleep(Duration::from_secs(1));
+            network.refresh(true);
+
+            if let Some(data) = network.get(&default_interface) {
+                let rx_data = data.total_received().saturating_sub(initial_value.0);
+                let tx_data = data.total_transmitted().saturating_sub(initial_value.1);
+
+                let rx_mbit = (rx_data * 8) / 1_000_000;
+                let tx_mbit = (tx_data * 8) / 1_000_000;
+
+                let data = json!({
+                    "download_speed" : rx_mbit,
+                    "upload_speed" : tx_mbit
+                });
+
+                // println!("↓ {:.3} Mbit/s ↑ {:.3} Mbit/s", rx_mbit, tx_mbit); Debug
+
+                if let Err(err) = sock.emit("network_stats", &data) {
+                    eprintln!("Network stats error - {}", err);
+                    break;
+                }
+            }
         }
     });
 }

@@ -36,7 +36,10 @@ pub fn live_image_preview_handler(socket: SocketRef) {
                         }
                     }
                 }
-                Err(e) => eprintln!("watch error: {:?}", e),
+                Err(e) => {
+                    eprintln!("watch error: {:?}", e);
+                    break;
+                }
             }
         }
     });
