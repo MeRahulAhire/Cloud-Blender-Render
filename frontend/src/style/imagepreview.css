@@ -111,7 +111,6 @@
   align-items: center;
   justify-content: center;
   position: absolute;
-  z-index: 1;
 }
 .ip-startup-context-box{
     display: grid;
@@ -136,7 +135,6 @@
 
 .ip-image-display{
     position: absolute;
-    z-index: 2;
     width: 100%;
     height: 100%;
 }

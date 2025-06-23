@@ -1,0 +1,265 @@
+/* Switch Component CSS - Tailwind Equivalent */
+
+/* Label styles */
+.relative {
+    position: relative;
+  }
+  
+  .inline-flex {
+    display: inline-flex;
+  }
+  
+  .items-center {
+    align-items: center;
+  }
+  
+  .cursor-pointer {
+    cursor: pointer;
+  }
+  
+  /* Screen reader only class */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  /* Switch container styles */
+  .group {
+    /* This is used as a grouping class for hover effects */
+  }
+  
+  .peer {
+    /* This is used for peer selector functionality */
+  }
+  
+  .ring-0 {
+    box-shadow: 0 0 0 0px rgba(0, 0, 0, 0);
+  }
+  
+  .bg-rose-400 {
+    background-color: rgb(251 113 133);
+  }
+  
+  .rounded-full {
+    border-radius: 9999px;
+  }
+  
+  .outline-none {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  
+  .duration-300 {
+    transition-duration: 300ms;
+  }
+  
+  .w-24 {
+    width: 6rem; /* 96px */
+  }
+  
+  .h-12 {
+    height: 3rem; /* 48px */
+  }
+  
+  .shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  /* Peer checked state */
+  .peer:checked + .peer-checked\:bg-emerald-500 {
+    background-color: rgb(16 185 129);
+  }
+  
+  /* Peer focus state */
+  .peer:focus + .peer-focus\:outline-none {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  
+  /* After pseudo-element styles */
+  .after\:duration-300::after {
+    transition-duration: 300ms;
+  }
+  
+  .after\:content-\[\'\'\]::after {
+    content: '';
+  }
+  
+  .after\:rounded-full::after {
+    border-radius: 9999px;
+  }
+  
+  .after\:absolute::after {
+    position: absolute;
+  }
+  
+  .after\:bg-gray-50::after {
+    background-color: rgb(249 250 251);
+  }
+  
+  .after\:outline-none::after {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  
+  .after\:h-10::after {
+    height: 2.5rem; /* 40px */
+  }
+  
+  .after\:w-10::after {
+    width: 2.5rem; /* 40px */
+  }
+  
+  .after\:top-1::after {
+    top: 0.25rem; /* 4px */
+  }
+  
+  .after\:left-1::after {
+    left: 0.25rem; /* 4px */
+  }
+  
+  .after\:flex::after {
+    display: flex;
+  }
+  
+  .after\:justify-center::after {
+    justify-content: center;
+  }
+  
+  .after\:items-center::after {
+    align-items: center;
+  }
+  
+  /* Peer checked after transform */
+  .peer:checked + .peer-checked\:after\:translate-x-12::after {
+    transform: translateX(3rem); /* 48px */
+  }
+  
+  /* Peer hover after scale - only when not checked */
+  .peer:not(:checked):hover + .peer-hover\:after\:scale-95::after {
+    transform: scale(0.95);
+  }
+  
+  /* SVG styles */
+  .absolute {
+    position: absolute;
+  }
+  
+  .top-1 {
+    top: 0.25rem; /* 4px */
+  }
+  
+  .left-12 {
+    left: 3rem; /* 48px */
+  }
+  
+  .left-1 {
+    left: 0.25rem; /* 4px */
+  }
+  
+  .stroke-gray-900 {
+    stroke: rgb(17 24 39);
+  }
+  
+  .w-10 {
+    width: 2.5rem; /* 40px */
+  }
+  
+  .h-10 {
+    height: 2.5rem; /* 40px */
+  }
+  
+  .svg-fill-primary {
+    fill: currentColor;
+  }
+  
+  /* Complete switch component with all states */
+  .switch-container {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+  }
+  
+  .switch-input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  
+  .switch-track {
+    position: relative;
+    width: 3.5rem; /* Reduced from 6rem */
+    height: 1.75rem; /* Reduced from 3rem */
+    background-color: rgb(251 113 133);
+    border-radius: 9999px;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    transition-duration: 300ms;
+    box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  .switch-track::after {
+    content: '';
+    position: absolute;
+    top: 0.125rem; /* Reduced from 0.25rem */
+    left: 0.125rem; /* Reduced from 0.25rem */
+    width: 1.5rem; /* Reduced from 2.5rem */
+    height: 1.5rem; /* Reduced from 2.5rem */
+    background-color: rgb(249 250 251);
+    border-radius: 9999px;
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition-duration: 300ms;
+  }
+  
+  .switch-input:checked + .switch-track {
+    background-color: rgb(16 185 129);
+  }
+  
+  .switch-input:not(:checked):hover + .switch-track::after {
+    transform: scale(0.95);
+  }
+  
+  .switch-input:checked + .switch-track::after {
+    transform: translateX(1.75rem); /* Reduced from 3rem */
+  }
+  
+  /* Remove the combined hover + checked state */
+  
+  .switch-input:focus + .switch-track {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  
+  .switch-svg {
+    position: absolute;
+    top: 0.125rem; /* Reduced from 0.25rem */
+    width: 1.5rem; /* Reduced from 2.5rem */
+    height: 1.5rem; /* Reduced from 2.5rem */
+    stroke: rgb(17 24 39);
+  }
+  
+  .switch-svg-locked {
+    left: 1.875rem; /* Adjusted for new proportions */
+  }
+  
+  .switch-svg-unlocked {
+    left: 0.125rem; /* Reduced from 0.25rem */
+  }

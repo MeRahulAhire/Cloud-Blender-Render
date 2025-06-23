@@ -3,6 +3,8 @@ import Home from "./component/Home";
 import "./App.css";
 import central_store from "./component/Store";
 import { useEffect } from "react";
+import preloader from "./component/Preloader";
+import Preloader from "./component/Preloader";
 
 export default function App() {
   const fetch_data = central_store((state) => state.fetch_data);
@@ -16,10 +18,7 @@ export default function App() {
 
   if (has_fetched === false) {
     return (
-      <div className="app-loading-screen">
-        {/* Optional: Add a spinner here */}
-        <p>Loading...</p>
-      </div>
+      <Preloader/>
     );
   }
 
@@ -28,6 +27,7 @@ export default function App() {
       <div className="app-global-window">
         <div className="app-max-width">
           <Home />
+          {/* <Preloader/> */}
         </div>
       </div>
     );

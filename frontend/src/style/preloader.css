@@ -1,0 +1,21 @@
+.preloader-container{
+    width: 100%;
+    height: 100vh;
+    background: url("../assets/images/dark-gradient.jpg");
+    display: grid;
+    place-items: center;
+}
+
+.preloader-container img{
+    width: 200px;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.125); /* 200px * 1.125 = 225px */
+    }
+}
