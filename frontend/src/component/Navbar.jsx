@@ -145,7 +145,7 @@ const Switch = ({ password_status, base_url, render_status }) => {
 
   }
   return (
-    <label className={`switch-container ${!!render_status ? ''  : 'extra-dim-opacity'}`} style={{cursor : !!render_status ? 'cursor' : 'not-allowed'}} >
+    <label className={`switch-container ${!!render_status ? 'extra-dim-opacity' : ''}`} style={{cursor : !!render_status ? 'not-allowed' : 'cursor'}} >
       <input
         type="checkbox"
         className="switch-input"

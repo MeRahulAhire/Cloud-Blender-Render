@@ -1,13 +1,8 @@
-/* .gpu-terminal-container {
-  height: 100vh;
+.gpu-terminal-container {
   width: 100%;
   background-color: #0f0f0f;
-  display: grid;
-  grid-template-areas:
-    "a b"
-    "c d"
-    "e e";
-} */
+ 
+}
 
 .terminal-top-section{
   width: 100%;

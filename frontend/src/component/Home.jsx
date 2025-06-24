@@ -3,6 +3,7 @@ import Navbar from "./Navbar";
 import Imagepreview from "./Imagepreview";
 import Controlpanel from "./Controlpanel";
 import Gputerminal from "./Gputerminal"
+import Footer from "./Footer";
 export default function Home() {
   return (
     <>
@@ -18,6 +19,7 @@ export default function Home() {
         </div>
       </div>
         <Gputerminal/>
+        <Footer/>
     </>
   );
 }
