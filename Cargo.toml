@@ -1,15 +1,19 @@
 [package]
-name = "Blender-Remote-Render"
+name = "Cloud-Blender-Render"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 axum = { version = "0.8.3", features = ["multipart"] }
+axum-extra = { version = "0.10.1", features = ["cookie"] }
 axum_typed_multipart = "0.15.1"
 base64 = "0.22.1"
+cookie = "0.18.1"
 file-format = "0.26.0"
 http = "1.3.1"
 image2 = "1.9.2"
+include_dir = "0.7.4"
+nanoid = "0.4.0"
 netdev = "0.35.2"
 nix = { version = "0.30.1", features = ["signal"] }
 notify = { version = "8.0.0", features = ["serde"] }

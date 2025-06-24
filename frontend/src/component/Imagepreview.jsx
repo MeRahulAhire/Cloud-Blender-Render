@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import "../style/imagepreview.css";
-import reel_image from "../assets/images/reel.png";
+import reel_image from "../assets/images/reel.webp";
 import { initSocket } from "./Socket";
 import central_store from "./Store";
 

@@ -10,7 +10,7 @@ pub fn schema_handler() -> RedisResult<()> {
     let data = json!({
       "password" : {
         "is_protected" : false,
-        "Key" : ""
+        "key" : ""
       },
       "blend_file" : {
         "is_present" : false,

@@ -65,7 +65,7 @@
 }
 
 .cp-inputbox {
-  width: calc(100% -2rem);
+  width: calc(100% - 2rem);
   height: 100px;
   margin-left: 1rem;
   margin-right: 1rem;

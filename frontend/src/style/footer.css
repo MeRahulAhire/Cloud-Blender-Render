@@ -1,7 +1,7 @@
 .footer-container{
     height: 500px;
     width: 100%;
-    background-image: url("../assets/images/3d-keyboard.png");
+    background-image: url("../assets/images/3d-keyboard.webp");
     background-size: cover;
     background-position: center;
     display: flex;

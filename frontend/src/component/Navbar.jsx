@@ -44,9 +44,14 @@ const Settings = ({ set_settings_box }) => {
   const [clipboard_select, set_clipboard_select] = useState(false);
   const password_status = central_store((state) => state.password.is_protected);
   const base_url = central_store((state) => state.base_url);
-  const blender_version = central_store(state => state.blender_version);
+  const blender_version = central_store((state) => state.blender_version);
   const key = central_store((state) => state.password.key);
-  const render_status = central_store((state) => state.render_status.is_rendering);
+  const debug_store = central_store(state => state)
+  const render_status = central_store(
+    (state) => state.render_status.is_rendering
+  );
+  const fetch_data = central_store((state) => state.fetch_data);
+  const socket = initSocket();
 
   const close_setting_box = (e) => {
     set_settings_box(false);
@@ -55,7 +60,8 @@ const Settings = ({ set_settings_box }) => {
   };
 
   const copy_link = () => {
-    if(password_status === true) {
+    console.log(debug_store)
+    if (password_status === true) {
       console.table({
         password_status: password_status,
         base_url: base_url,
@@ -63,7 +69,7 @@ const Settings = ({ set_settings_box }) => {
       });
       navigator.clipboard.writeText(`${base_url}/share?key=${key}`);
       set_clipboard_select(true);
-  
+
       setTimeout(() => {
         set_clipboard_select(false);
       }, 2500);
@@ -89,14 +95,19 @@ const Settings = ({ set_settings_box }) => {
             <div className="sb-toggle-box">
               <div className="sb-toggle-box-top">
                 <p>Secure session</p>
-                <Switch password_status={password_status} base_url={base_url} render_status={render_status} />
+                <Switch
+                  password_status={password_status}
+                  base_url={base_url}
+                  render_status={render_status}
+                  fetch_data={fetch_data}
+                  socket={socket}
+                />
                 <div
                   className={`sb-toggle-box-top-clipboard ${
                     !!clipboard_select ? "clippy-toggle" : ""
                   } ${!!password_status ? "" : "extra-dim-opacity"}`}
-
                   style={{
-                    cursor: !!password_status ? 'pointer' : 'not-allowed'
+                    cursor: !!password_status ? "pointer" : "not-allowed",
                   }}
                   onClick={copy_link}
                 >
@@ -121,9 +132,9 @@ const Settings = ({ set_settings_box }) => {
               </div>
             </div>
           </div>
-            <div className="sb-blender-version-dialogue">
+          <div className="sb-blender-version-dialogue">
             This app is running on {blender_version}
-            </div>
+          </div>
         </div>
       </div>
     </>,
@@ -131,21 +142,46 @@ const Settings = ({ set_settings_box }) => {
   );
 };
 
-const Switch = ({ password_status, base_url, render_status }) => {
-
+const Switch = ({
+  password_status,
+  base_url,
+  render_status,
+  socket,
+  fetch_data,
+}) => {
   const set_secure = (e) => {
-     if (password_status === false && render_status === false) {
-
-     }
-     if (password_status === true && render_status === false) {
-       
+    if (password_status === false && render_status === false) {
+      socket.disconnect();
+      axios
+        .post(`${base_url}/create_auth`, {}, { withCredentials: true })
+        .then((res) => {
+          if (res.status === 200) {
+            socket.connect();
+            fetch_data();
+          }
+        })
+        .catch((err) => console.error(err));
     }
-    console.log(password_status)
-    
-
-  }
+    if (password_status === true && render_status === false) {
+      socket.disconnect();
+      axios
+        .post(`${base_url}/delete_auth`, {}, { withCredentials: true })
+        .then((res) => {
+          if (res.status === 200) {
+            socket.connect();
+            fetch_data();
+          }
+        })
+        .catch((err) => console.error(err));
+    }
+  };
   return (
-    <label className={`switch-container ${!!render_status ? 'extra-dim-opacity' : ''}`} style={{cursor : !!render_status ? 'not-allowed' : 'cursor'}} >
+    <label
+      className={`switch-container ${
+        !!render_status ? "extra-dim-opacity" : ""
+      }`}
+      style={{ cursor: !!render_status ? "not-allowed" : "cursor" }}
+    >
       <input
         type="checkbox"
         className="switch-input"

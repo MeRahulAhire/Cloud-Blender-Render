@@ -29,7 +29,7 @@ export default function Footer() {
         </div>
       </div>
             <div className="footer-bg-art-credit">
-                Background art credit - <a href="https://www.behance.net/gallery/152184245/NZXT-keyboard-rendering-practice-by-blender" target="_blank" rel="noopener noreferrer">Pana Chena on Behance</a>
+                Background art credit - <a href="https://www.behance.net/gallery/152184245/NZXT-keyboard-rendering-practice-by-blender" target="_blank" rel="noopener noreferrer">Pana Chena</a>
             </div>
     </div>
   );
