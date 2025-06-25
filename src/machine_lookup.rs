@@ -132,7 +132,7 @@ pub fn gpu_util_stats(socket: SocketRef) {
             }
 
             let data = Value::Object(stats_map);
-            // println!("🖥️ GPU Stats: {}", &data);
+            println!("🖥️ GPU Stats: {}", &data);
             if let Err(err) = sock.emit("gpu_util_stats", &data) {
                 eprintln!("GPU stats emit error: {}", err);
                 break;
@@ -279,3 +279,89 @@ pub fn network_stats(socket: SocketRef) {
         }
     });
 }
+
+
+// Newer Fix - 
+
+// pub fn gpu_util_stats(socket: SocketRef) {
+//     thread::spawn(move || {
+//         let sock = socket;
+
+//         // Initialize NVML
+//         let nvml = match Nvml::init() {
+//             Ok(n) => n,
+//             Err(err) => {
+//                 eprintln!("Failed to initialize NVML: {}", err);
+//                 return;
+//             }
+//         };
+
+//         // Regex to capture display name without prefixes and trailing details
+//         let re = Regex::new(r"(?xi)
+//             ^(?:NVIDIA|Tesla)\s+            # drop leading 'NVIDIA ' or 'Tesla '
+//             (?:GeForce\s+)?                # optionally drop 'GeForce '
+//             (?P<model>
+//                 RTX\s+(?:2000|4000|5000|6000)\s+Ada       # RTX 2000/4000/5000/6000 Ada
+//               | RTX\s+\d{3,4}(?:\s+SUPER)?(?:\s+Ti)?     # RTX 3070, RTX 3080 Ti, RTX 4080 SUPER
+//               | RTX\s+A\d{4}                              # RTX A2000 / A4000 / …
+//               | GTX\s+(?:9\d{2}|10\d{2}|16\d{2})(?:\s+Ti)? # GTX 960 / GTX 1080 / GTX 1660 Ti
+//               | Titan(?:\s+(?:X(?:p)?|V|RTX))?              # Titan X / Titan Xp / Titan V / Titan RTX
+//               | A\d{2}(?:00)?                               # A30 / A40 / A100
+//               | B200                                       # B200
+//               | H100(?:\s+(?:SXM|NVL|PCIe))?                # H100 SXM / NVL / PCIe
+//               | H200\s+SXM                                 # H200 SXM
+//               | L4|L40S?                                   # L4 / L40 / L40S
+//               | V100(?:-FHHL|-PCIE|-SXM2)?                  # V100 FHHL / PCIE / SXM2
+//             )
+//             (?:\b|$)                # stop at word boundary or end
+//         ").unwrap();
+
+//         loop {
+//             let count = match nvml.device_count() {
+//                 Ok(c) => c,
+//                 Err(err) => {
+//                     eprintln!("NVML device_count error: {}", err);
+//                     thread::sleep(Duration::from_secs(1));
+//                     continue;
+//                 }
+//             };
+
+//             let mut stats_map: Map<String, Value> = Map::with_capacity(count as usize);
+//             for idx in 0..count {
+//                 if let Ok(device) = nvml.device_by_index(idx) {
+//                     if let Ok(util) = device.utilization_rates() {
+//                         if let Ok(raw_name) = device.name() {
+//                             let display = if let Some(caps) = re.captures(&raw_name) {
+//                                 caps.name("model").unwrap().as_str().to_string()
+//                             } else {
+//                                 raw_name
+//                                     .trim_start_matches("NVIDIA ")
+//                                     .trim_start_matches("Tesla ")
+//                                     .trim_start_matches("GeForce ")
+//                                     .to_string()
+//                             };
+                            
+//                             // Create unique key by appending index, but only if multiple GPUs exist
+//                             let key = if count > 1 {
+//                                 format!("{}_{}", display, idx)
+//                             } else {
+//                                 display
+//                             };
+                            
+//                             stats_map.insert(key, json!(util.gpu));
+//                         }
+//                     }
+//                 }
+//             }
+
+//             let data = Value::Object(stats_map);
+//             println!("🖥️ GPU Stats: {}", &data);
+//             if let Err(err) = sock.emit("gpu_util_stats", &data) {
+//                 eprintln!("GPU stats emit error: {}", err);
+//                 break;
+//             }
+
+//             thread::sleep(Duration::from_secs(1));
+//         }
+//     });
+// }
