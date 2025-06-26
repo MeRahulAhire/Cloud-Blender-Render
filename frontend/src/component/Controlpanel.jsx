@@ -38,6 +38,7 @@ export default function Controlpanel() {
 
  
   const toggle_render_process = () => {
+    // console.table({"anime-query" : anime_query, "engine_query" : engine_query})
 
     if (render_status === false && blend_file_present === true) {
       socket.emit("blend_engine", {

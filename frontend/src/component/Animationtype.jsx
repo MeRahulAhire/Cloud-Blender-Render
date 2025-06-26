@@ -55,7 +55,7 @@ export default function Animationtype() {
       set_entire_sequence(false);
       set_range_sequence(true);
       set_single_frame(false);
-      set_anime_query(`-s ${start_range_value} -e ${end_range_value}`);
+      set_anime_query(`-s ${start_range_value} -e ${end_range_value} -a`);
     }
   };
   const set_single_frame_in_store = () => {

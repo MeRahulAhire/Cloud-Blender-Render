@@ -85,7 +85,7 @@ const central_store = create((set, get) => ({
         // rebuild anime_query immediately:
         const { start_frame, end_frame } =
           state.blender_settings.animation_sequence.range;
-        state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+        state.anime_query = `-s ${start_frame} -e ${end_frame} -a`;
       })
     );
   },
@@ -97,7 +97,7 @@ const central_store = create((set, get) => ({
         );
         const { start_frame, end_frame } =
           state.blender_settings.animation_sequence.range;
-        state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+        state.anime_query = `-s ${start_frame} -e ${end_frame} -a`;
       })
     );
   },
@@ -125,7 +125,7 @@ const central_store = create((set, get) => ({
         if (value) {
           const { start_frame, end_frame } =
             state.blender_settings.animation_sequence.range;
-          state.anime_query = `-s ${start_frame} -e ${end_frame}`;
+          state.anime_query = `-s ${start_frame} -e ${end_frame} -a`;
         }
       })
     );
