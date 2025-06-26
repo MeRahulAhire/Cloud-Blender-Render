@@ -143,87 +143,88 @@ pub fn ram_stats(socket: SocketRef) {
 //     });
 // }
 
-pub fn gpu_mem_stats(socket: SocketRef) {
-    thread::spawn(move || {
-        let sock = socket;
+// pub fn gpu_mem_stats(socket: SocketRef) {
+//     thread::spawn(move || {
+//         let sock = socket;
 
-        // Initialize NVML
-        let nvml = match Nvml::init() {
-            Ok(n) => n,
-            Err(err) => {
-                eprintln!("Failed to initialize NVML: {}", err);
-                return;
-            }
-        };
+//         // Initialize NVML
+//         let nvml = match Nvml::init() {
+//             Ok(n) => n,
+//             Err(err) => {
+//                 eprintln!("Failed to initialize NVML: {}", err);
+//                 return;
+//             }
+//         };
 
-        // Same regex for display names
-        let re = Regex::new(
-            r"(?xi)
-            ^(?:NVIDIA|Tesla)\s+            # drop leading 'NVIDIA ' or 'Tesla '
-            (?:GeForce\s+)?                # optionally drop 'GeForce '
-            (?P<model>
-                RTX\s+(?:2000|4000|5000|6000)\s+Ada
-              | RTX\s+\d{3,4}(?:\s+SUPER)?(?:\s+Ti)?
-              | RTX\s+A\d{4}
-              | GTX\s+(?:9\d{2}|10\d{2}|16\d{2})(?:\s+Ti)?
-              | Titan(?:\s+(?:X(?:p)?|V|RTX))?
-              | A\d{2}(?:00)?
-              | B200
-              | H100(?:\s+(?:SXM|NVL|PCIe))?
-              | H200\s+SXM
-              | L4|L40S?
-              | V100(?:-FHHL|-PCIE|-SXM2)?
-            )
-            (?:\b|$)
-        ",
-        )
-        .unwrap();
+//         // Same regex for display names
+//         let re = Regex::new(
+//             r"(?xi)
+//             ^(?:NVIDIA|Tesla)\s+            # drop leading 'NVIDIA ' or 'Tesla '
+//             (?:GeForce\s+)?                # optionally drop 'GeForce '
+//             (?P<model>
+//                 RTX\s+(?:2000|4000|5000|6000)\s+Ada
+//               | RTX\s+\d{3,4}(?:\s+SUPER)?(?:\s+Ti)?
+//               | RTX\s+A\d{4}
+//               | GTX\s+(?:9\d{2}|10\d{2}|16\d{2})(?:\s+Ti)?
+//               | Titan(?:\s+(?:X(?:p)?|V|RTX))?
+//               | A\d{2}(?:00)?
+//               | B200
+//               | H100(?:\s+(?:SXM|NVL|PCIe))?
+//               | H200\s+SXM
+//               | L4|L40S?
+//               | V100(?:-FHHL|-PCIE|-SXM2)?
+//             )
+//             (?:\b|$)
+//         ",
+//         )
+//         .unwrap();
 
-        loop {
-            let count = match nvml.device_count() {
-                Ok(c) => c,
-                Err(err) => {
-                    eprintln!("NVML device_count error: {}", err);
-                    thread::sleep(Duration::from_secs(1));
-                    continue;
-                }
-            };
+//         loop {
+//             let count = match nvml.device_count() {
+//                 Ok(c) => c,
+//                 Err(err) => {
+//                     eprintln!("NVML device_count error: {}", err);
+//                     thread::sleep(Duration::from_secs(1));
+//                     continue;
+//                 }
+//             };
 
-            let mut mem_map: Map<String, Value> = Map::with_capacity(count as usize);
-            for idx in 0..count {
-                if let Ok(device) = nvml.device_by_index(idx) {
-                    if let Ok(mem_info) = device.memory_info() {
-                        if let Ok(raw_name) = device.name() {
-                            // extract display name
-                            let display = if let Some(caps) = re.captures(&raw_name) {
-                                caps.name("model").unwrap().as_str().to_string()
-                            } else {
-                                raw_name
-                                    .trim_start_matches("NVIDIA ")
-                                    .trim_start_matches("Tesla ")
-                                    .trim_start_matches("GeForce ")
-                                    .to_string()
-                            };
-                            // used memory in bytes -> GB
-                            let used_gb =
-                                (mem_info.used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
-                            mem_map.insert(display, json!(used_gb));
-                        }
-                    }
-                }
-            }
+//             let mut mem_map: Map<String, Value> = Map::with_capacity(count as usize);
+//             for idx in 0..count {
+//                 if let Ok(device) = nvml.device_by_index(idx) {
+//                     if let Ok(mem_info) = device.memory_info() {
+//                         if let Ok(raw_name) = device.name() {
+//                             // extract display name
+//                             let display = if let Some(caps) = re.captures(&raw_name) {
+//                                 caps.name("model").unwrap().as_str().to_string()
+//                             } else {
+//                                 raw_name
+//                                     .trim_start_matches("NVIDIA ")
+//                                     .trim_start_matches("Tesla ")
+//                                     .trim_start_matches("GeForce ")
+//                                     .to_string()
+//                             };
+//                             // used memory in bytes -> GB
+//                             let used_gb =
+//                                 (mem_info.used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
+//                             mem_map.insert(display, json!(used_gb));
+//                         }
+//                     }
+//                 }
+//             }
 
-            let data = Value::Object(mem_map);
-            // println!("🖥️ GPU Mem Stats (GB): {}", data);
-            if let Err(err) = sock.emit("gpu_mem_stats", &data) {
-                eprintln!("GPU mem stats emit error: {}", err);
-                break;
-            }
+//             let data = Value::Object(mem_map);
+//             // println!("🖥️ GPU Mem Stats (GB): {}", data);
+//             if let Err(err) = sock.emit("gpu_mem_stats", &data) {
+//                 eprintln!("GPU mem stats emit error: {}", err);
+//                 break;
+//             }
 
-            thread::sleep(Duration::from_secs(1));
-        }
-    });
-}
+//             thread::sleep(Duration::from_secs(1));
+//         }
+//     });
+// }
+
 
 pub fn network_stats(socket: SocketRef) {
     thread::spawn(move || {
@@ -355,9 +356,101 @@ pub fn gpu_util_stats(socket: SocketRef) {
             }
 
             let data = Value::Object(stats_map);
-            println!("🖥️ GPU Stats: {}", &data);
+            // println!("🖥️ GPU Stats: {}", &data);
             if let Err(err) = sock.emit("gpu_util_stats", &data) {
                 eprintln!("GPU stats emit error: {}", err);
+                break;
+            }
+
+            thread::sleep(Duration::from_secs(1));
+        }
+    });
+}
+
+
+
+pub fn gpu_mem_stats(socket: SocketRef) {
+    thread::spawn(move || {
+        let sock = socket;
+
+        // Initialize NVML
+        let nvml = match Nvml::init() {
+            Ok(n) => n,
+            Err(err) => {
+                eprintln!("Failed to initialize NVML: {}", err);
+                return;
+            }
+        };
+
+        // Same regex for display names
+        let re = Regex::new(
+            r"(?xi)
+            ^(?:NVIDIA|Tesla)\s+            # drop leading 'NVIDIA ' or 'Tesla '
+            (?:GeForce\s+)?                # optionally drop 'GeForce '
+            (?P<model>
+                RTX\s+(?:2000|4000|5000|6000)\s+Ada
+              | RTX\s+\d{3,4}(?:\s+SUPER)?(?:\s+Ti)?
+              | RTX\s+A\d{4}
+              | GTX\s+(?:9\d{2}|10\d{2}|16\d{2})(?:\s+Ti)?
+              | Titan(?:\s+(?:X(?:p)?|V|RTX))?
+              | A\d{2}(?:00)?
+              | B200
+              | H100(?:\s+(?:SXM|NVL|PCIe))?
+              | H200\s+SXM
+              | L4|L40S?
+              | V100(?:-FHHL|-PCIE|-SXM2)?
+            )
+            (?:\b|$)
+        ",
+        )
+        .unwrap();
+
+        loop {
+            let count = match nvml.device_count() {
+                Ok(c) => c,
+                Err(err) => {
+                    eprintln!("NVML device_count error: {}", err);
+                    thread::sleep(Duration::from_secs(1));
+                    continue;
+                }
+            };
+
+            let mut mem_map: Map<String, Value> = Map::with_capacity(count as usize);
+            for idx in 0..count {
+                if let Ok(device) = nvml.device_by_index(idx) {
+                    if let Ok(mem_info) = device.memory_info() {
+                        if let Ok(raw_name) = device.name() {
+                            // extract display name
+                            let display = if let Some(caps) = re.captures(&raw_name) {
+                                caps.name("model").unwrap().as_str().to_string()
+                            } else {
+                                raw_name
+                                    .trim_start_matches("NVIDIA ")
+                                    .trim_start_matches("Tesla ")
+                                    .trim_start_matches("GeForce ")
+                                    .to_string()
+                            };
+                            
+                            // Create unique key by appending index, but only if multiple GPUs exist
+                            let key = if count > 1 {
+                                format!("{}_{}", display, idx)
+                            } else {
+                                display
+                            };
+                            
+                            // used memory in bytes -> GB
+                            let used_gb =
+                                (mem_info.used as f64 / 1_073_741_824.0 * 100.0).round() / 100.0;
+                            mem_map.insert(key, json!(used_gb));
+                        }
+                    }
+                }
+            }
+
+            let data = Value::Object(mem_map);
+            println!("🖥️ GPU Mem Stats (GB): {}", data);
+            if let Err(err) = sock.emit("gpu_mem_stats", &data) {
+                eprintln!("GPU mem stats emit error: {}", err);
                 break;
             }
 
