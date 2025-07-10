@@ -145,7 +145,7 @@ pub async fn middleware_auth(
 
     // 2️⃣ Auth is enabled - check for valid cookie
     let Some(cookie) = jar.get("key") else {
-        let err = json!({ "message": "Authentication required. Please contact the adminstrator" });
+        let err = json!({ "message": "Authentication required. Please contact the administrator" });
         return (StatusCode::UNAUTHORIZED, Json(err)).into_response();
     };
 

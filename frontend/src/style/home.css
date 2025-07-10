@@ -12,8 +12,9 @@
   width: 100%;
   display: grid;
   grid-template-areas: "a b";
-  grid-template-columns: 1000px 400px;
+  grid-template-columns: calc(100% - 25rem - 250px) calc(25rem);
   justify-content: space-evenly;
+  /* gap: 5rem; */
 }
 
 .home-container-display-ip {
@@ -24,7 +25,7 @@
   
 }
 
-@media screen and (max-width: 1500px) {
+/* @media screen and (max-width: 1500px) {
   .home-container-display {
     grid-template-columns: 900px 400px;
   }
@@ -51,7 +52,7 @@
   .home-container-display {
     grid-template-columns: 500px 400px;
   }
-}
+} */
 @media screen and (max-width: 1000px) {
   .home-container-display {
     grid-template-areas:
