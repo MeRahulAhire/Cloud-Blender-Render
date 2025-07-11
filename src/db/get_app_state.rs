@@ -6,7 +6,6 @@ use serde_json::json;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use file_format::FileFormat;
 // use std::io;
 
 pub async fn get_db() -> impl IntoResponse {
@@ -118,21 +117,15 @@ fn check_blend_file() -> Option<impl IntoResponse> {
             .filter_map(|entry| {
                 let entry = entry.ok()?;
                 let file_name = entry.file_name().into_string().ok()?;
-                
+
                 // Skip directories
                 if entry.file_type().ok()?.is_dir() {
                     return None;
                 }
-                
-                
-                let file_path = entry.path();
-                if let Ok(format) = FileFormat::from_file(&file_path) {
-                    if format.name() == "Blender" {
-                        return Some(file_name);
-                    }
+                if file_name.to_lowercase().ends_with(".blend") {
+                    return Some(file_name);
                 }
-                
-                
+
                 None
             })
             .collect(),
@@ -175,8 +168,6 @@ fn check_blend_file() -> Option<impl IntoResponse> {
     None
 }
 
-
-
 fn blender_version() {
     let output = Command::new("./blender/blender")
         .arg("--version")
@@ -186,7 +177,6 @@ fn blender_version() {
     if output.status.success() {
         let stdout = String::from_utf8_lossy(&output.stdout);
         if let Some(first_line) = stdout.lines().next() {
-
             let data = json!({"blender_version" : first_line});
 
             update(data).unwrap();
