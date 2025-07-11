@@ -5,7 +5,7 @@ set -e
 mkdir -p /workspace/temp /workspace/output /workspace/blend-folder /workspace/tmp_upload
 
 # List of app binaries and folders to manage
-FILES=("dragonfly-x86_64" "Cloud-Blender-Render" "blender")
+FILES=("dragonfly-x86_64" "Cloud-Blender-Render" "blender" "cycles_optix_denoise_logic.py")
 
 # Copy from /app if missing
 for f in "${FILES[@]}"; do

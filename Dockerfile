@@ -123,6 +123,9 @@ RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
+# After the Cloud-Blender-Render binary section, add:
+COPY cycles_optix_denoise_logic.py /app/
+
 # Copy start.sh and make executable
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
