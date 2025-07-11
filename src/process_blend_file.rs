@@ -110,7 +110,7 @@ pub fn render_task(
             .arg("-o")
             .arg("./output/")
             .arg("-P")
-            .arg("cycle_optix_denoise_logic.py")
+            .arg("cycles_optix_denoise_logic.py")
             .args(blender_query.split_whitespace())
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
