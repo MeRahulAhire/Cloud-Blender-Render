@@ -119,7 +119,7 @@ RUN wget https://ftp.halifax.rwth-aachen.de/blender/release/Blender4.4/blender-4
     rm blender-4.4.3-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
-RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.0.0/Cloud-Blender-Render && \
+RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.1.0/Cloud-Blender-Render && \
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
