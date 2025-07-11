@@ -104,7 +104,7 @@ const Settings = ({ set_settings_box }) => {
                 />
 
                 {window.location.protocol === 'http:' ? 
-                !!password_status && <div className="sb-toggle-box-top-clipboard-http"> Share link: {base_url}/share?key={key} </div> : 
+                !!password_status && <div className="sb-toggle-box-top-clipboard-http"> Share link: <input type="" value={`${base_url}/share?key=${key}`} /> </div> : 
                 <div
                   className={`sb-toggle-box-top-clipboard-https ${
                     !!clipboard_select ? "clippy-toggle" : ""

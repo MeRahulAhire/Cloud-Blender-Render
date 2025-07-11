@@ -180,6 +180,14 @@
   position: absolute;
   right: 0.25rem;
 }
+.sb-toggle-box-top-clipboard-http input {
+  background: none;
+ border: none;
+  color: #f7f7f7;
+  width: 15rem;
+  outline: none;
+  text-decoration: underline;
+}
 
 .clippy-toggle{
   color: #f7f7f7;
