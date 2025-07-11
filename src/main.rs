@@ -252,6 +252,6 @@ async fn main() {
         .layer(db::db_handler())
         .route("/share", get(auth::share_auth));
 
-    let listner = tokio::net::TcpListener::bind("0.0.0.0:4000").await.unwrap();
+    let listner = tokio::net::TcpListener::bind("[::]:4000").await.unwrap();
     serve(listner, app).await.unwrap();
 }
