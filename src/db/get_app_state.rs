@@ -57,55 +57,6 @@ pub async fn get_db() -> impl IntoResponse {
     (StatusCode::OK, Json(json_val))
 }
 
-// fn check_blend_file() -> Option<impl IntoResponse> {
-//     // Checking Blend file is foremost primary aim
-//     let path = Path::new("./blend-folder");
-//     let mut blend_file_exist: bool = false;
-
-//     // Read and collect file names as Strings
-//     let mut names: Vec<String> = match fs::read_dir(path) {
-//         Ok(entries) => entries
-//             .filter_map(|entry| entry.ok()?.file_name().into_string().ok())
-//             .collect(),
-//         Err(_) => {
-//             return Some((
-//                 StatusCode::INTERNAL_SERVER_ERROR,
-//                 Json(json!({ "error": "Failed to read ./blend-folder directory" })),
-//             ));
-//         }
-//     };
-
-//     // Sort alphabetically
-//     names.sort();
-
-//     // Get first file name (if any)
-//     let first_file = names.get(0).cloned(); // Option<String>
-
-//     // Update the bool if a valid first file exists
-//     if let Some(ref name) = first_file {
-//         if !name.is_empty() {
-//             blend_file_exist = true;
-//         }
-//     }
-
-//     // Store in database
-//     let db_field = json!({
-//         "blend_file": {
-//             "is_present": blend_file_exist,
-//             "file_name": first_file
-//         }
-//     });
-
-//     if let Err(_) = update(db_field) {
-//         return Some((
-//             StatusCode::INTERNAL_SERVER_ERROR,
-//             Json(json!({ "error": "Failed to update database" })),
-//         ));
-//     }
-
-//     None
-// }
-
 fn check_blend_file() -> Option<impl IntoResponse> {
     // Checking Blend file is foremost primary aim
     let path = Path::new("./blend-folder");
