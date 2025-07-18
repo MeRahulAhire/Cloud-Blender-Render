@@ -42,8 +42,8 @@ RUN wget https://dragonflydb.gateway.scarf.sh/latest/dragonfly-x86_64.tar.gz && 
 # Blender CLI
 RUN wget https://download.blender.org/release/Blender4.5/blender-4.5.0-linux-x64.tar.xz && \
     mkdir /app/blender && \
-    tar xf blender-4.4.3-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
-    rm blender-4.4.3-linux-x64.tar.xz
+    tar xf blender-4.5.0-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
+    rm blender-4.5.0-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
 RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.2.0/Cloud-Blender-Render && \
