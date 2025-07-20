@@ -121,7 +121,7 @@ export default function Fileinput() {
               return;
             } else if (response.status === 202) {
               // Chunk uploaded, continue with next chunk
-              console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded`);
+              // console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded`);
             }
             
           } catch (chunkError) {
