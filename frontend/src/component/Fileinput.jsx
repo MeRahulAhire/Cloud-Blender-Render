@@ -32,45 +32,127 @@ export default function Fileinput() {
     });
   };
 
+  // const onDrop = useCallback(
+  //   (acceptFiles) => {
+  //     const file = acceptFiles[0];
+  //     const formData = new FormData();
+  //     formData.append("file", file);
+
+  //     axios
+  //       .post(`${base_url}/upload_blend_file`, formData, {
+  //         headers: {
+  //           "Content-Type": "multipart/form-data",
+  //         },
+  //         onUploadProgress: (progressEvent) => {
+  //           const percentage = Math.round(
+  //             (progressEvent.loaded * 100) / progressEvent.total
+  //           );
+  //           set_upload_percentage(percentage);
+  //         },
+  //         withCredentials : true,
+  //       })
+  //       .then((res) => {
+  //         if (res.status === 200) {
+  //           fetch_data();
+  //         }
+  //       })
+  //       .catch((err) => {
+  //         console.error("Upload failed", err);
+  //         set_upload_percentage(0);
+  //         fetch_data();
+  //       });
+
+  //     // console.log(acceptFiles[0].name);
+  //     // console.log(blend_file);
+  //     // set_progress_bar_status(true);
+  //     // set_blend_file_name(acceptFiles[0].name);
+  //     // set_file_btn(true);
+  //   },
+  //   [set_upload_percentage]
+  // );
+
   const onDrop = useCallback(
-    (acceptFiles) => {
+    async (acceptFiles) => {
       const file = acceptFiles[0];
-      const formData = new FormData();
-      formData.append("file", file);
-
-      axios
-        .post(`${base_url}/upload_blend_file`, formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-          onUploadProgress: (progressEvent) => {
-            const percentage = Math.round(
-              (progressEvent.loaded * 100) / progressEvent.total
-            );
+      const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      
+      // Generate unique file_id for this upload session
+      const fileId = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+      
+      let uploadedChunks = 0;
+      
+      try {
+        // Reset upload percentage at start
+        set_upload_percentage(0);
+        
+        // Upload chunks sequentially
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+          const start = chunkIndex * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunk = file.slice(start, end);
+          
+          const formData = new FormData();
+          formData.append("file", chunk);
+          formData.append("chunk_index", chunkIndex.toString());
+          formData.append("total_chunks", totalChunks.toString());
+          formData.append("file_name", file.name);
+          formData.append("file_id", fileId);
+          
+          try {
+            const response = await axios.post(`${base_url}/upload_blend_file`, formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+              withCredentials: true,
+            });
+            
+            uploadedChunks++;
+            
+            // Update progress based on chunks uploaded
+            const percentage = Math.round((uploadedChunks * 100) / totalChunks);
             set_upload_percentage(percentage);
-          },
-          withCredentials : true,
-        })
-        .then((res) => {
-          if (res.status === 200) {
+            
+            // Check if upload is complete (status 200) or continuing (status 202)
+            if (response.status === 200) {
+              // Upload completed successfully
+              console.log("Upload completed successfully");
+              fetch_data();
+              return;
+            } else if (response.status === 202) {
+              // Chunk uploaded, continue with next chunk
+              console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded`);
+            }
+            
+          } catch (chunkError) {
+            console.error(`Failed to upload chunk ${chunkIndex}:`, chunkError);
+            
+            // If it's a session validation error (400), restart is needed
+            if (chunkError.response?.status === 400) {
+              console.error("Upload session invalid, restart required");
+              set_upload_percentage(0);
+              fetch_data();
+              return;
+            }
+            
+            // For other errors, also reset and refresh data
+            set_upload_percentage(0);
             fetch_data();
+            return;
           }
-        })
-        .catch((err) => {
-          console.error("Upload failed", err);
-          set_upload_percentage(0);
-          fetch_data();
-        });
-
-      // console.log(acceptFiles[0].name);
-      // console.log(blend_file);
-      // set_progress_bar_status(true);
-      // set_blend_file_name(acceptFiles[0].name);
-      // set_file_btn(true);
+        }
+        
+      } catch (error) {
+        console.error("Upload failed:", error);
+        set_upload_percentage(0);
+        fetch_data();
+      }
     },
-    [set_upload_percentage]
+    [base_url, set_upload_percentage, fetch_data]
   );
 
+
+  
   const { acceptFiles, getRootProps, getInputProps } = useDropzone({
     onDrop,
     onDropRejected,
