@@ -82,6 +82,7 @@ export default function Filebrowser() {
     try {
       if ("showDirectoryPicker" in window) {
         const dir_handle = await window.showDirectoryPicker();
+        await dir_handle.requestPermission({ mode : 'readwrite'})
         const batchSize = 5; // Adjust based on your needs (5-10 is usually optimal)
         
         for (let i = 0; i < rendered_image_list.length; i += batchSize) {
