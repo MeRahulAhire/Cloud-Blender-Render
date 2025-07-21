@@ -74,7 +74,7 @@ export default function Fileinput() {
   const onDrop = useCallback(
     async (acceptFiles) => {
       const file = acceptFiles[0];
-      const CHUNK_SIZE = 50 * 1024 * 1024; // 50MB chunks
+      const CHUNK_SIZE = 20 * 1024 * 1024; // 20MB chunks
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
       
       // Generate unique file_id for this upload session
