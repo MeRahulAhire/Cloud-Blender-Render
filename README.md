@@ -48,18 +48,23 @@ Runpod is GPU cloud provider where you can get all kinds of GPU right from RTX 3
 There are an estimated 2–4 million Blender users worldwide, yet less than 0.1% support the Blender Foundation. Open-source projects face similar challenges, many disappear due to a lack of funding. Your support will help keep this project alive and thriving. It will allow me to actively maintain, add new features, and ensure you get the best rendering experience possible.
 
  <a href="https://cloud-blender-render.rahulahire.com/" target="_blank">
- <img width="200" alt="Asset 11" src="https://github.com/user-attachments/assets/fa8a1562-efeb-4299-9e9a-11be7480dc93" />
+<img width="250" alt="Asset 13" src="https://github.com/user-attachments/assets/a0ded876-af45-4c12-825a-3013f8f7e464" />
 
  </a>
 
+ 
+### This project is licensed under Apache 2.0 
 
+Copyright 2025 Rahul Ahire
 
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-
-
-
-
-
-
-
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
