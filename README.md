@@ -47,7 +47,7 @@ Runpod is GPU cloud provider where you can get all kinds of GPU right from RTX 3
 
 There are an estimated 2–4 million Blender users worldwide, yet less than 0.1% support the Blender Foundation. Open-source projects face similar challenges, many disappear due to a lack of funding. Your support will help keep this project alive and thriving. It will allow me to actively maintain, add new features, and ensure you get the best rendering experience possible.
 
- <a href="https://cloud-blender-render.rahulahire.com/" target="_blank">
+ <a href="https://coff.ee/rahulahire" target="_blank">
 <img width="250" alt="Asset 13" src="https://github.com/user-attachments/assets/a0ded876-af45-4c12-825a-3013f8f7e464" />
 
  </a>
