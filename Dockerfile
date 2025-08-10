@@ -40,13 +40,13 @@ RUN wget https://dragonflydb.gateway.scarf.sh/latest/dragonfly-x86_64.tar.gz && 
     rm dragonfly-x86_64.tar.gz
 
 # Blender CLI
-RUN wget https://download.blender.org/release/Blender4.5/blender-4.5.0-linux-x64.tar.xz && \
+RUN wget https://download.blender.org/release/Blender4.5/blender-4.5.1-linux-x64.tar.xz && \
     mkdir /app/blender && \
-    tar xf blender-4.5.0-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
-    rm blender-4.5.0-linux-x64.tar.xz
+    tar xf blender-4.5.1-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
+    rm blender-4.5.1-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
-RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.3.3/Cloud-Blender-Render && \
+RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.4.0/Cloud-Blender-Render && \
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
