@@ -59,6 +59,21 @@
   display: grid;
   place-items: center;
 }
+.navbar-donation-button{
+  height: 40px;
+  width: 80px;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  position: absolute;
+  right: 100px;
+  text-decoration: none;
+  font-family: roboto;
+  font-size: 0.9rem;
+  font-weight:600;
+  color: #0f0f0f;
+}
 
 .navbar-gearbox {
   width: 40px;
@@ -232,6 +247,9 @@
 
 @media screen and (max-width: 540px) {
   .navbar-gearbox {
+    display: none;
+  }
+  .navbar-donation-button{
     display: none;
   }
 }

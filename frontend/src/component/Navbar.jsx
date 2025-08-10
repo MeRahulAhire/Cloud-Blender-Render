@@ -29,6 +29,12 @@ export default function Navbar() {
             </div> */}
               <div className="title">Cloud Blender Render</div>
             </div>
+            <a className="navbar-donation-button" href="http://coff.ee/rahulahire" target="_blank" rel="noopener noreferrer">
+            Support
+            </a>
+            {/* <a className="navbar-donation-button">
+              <a href="http://coff.ee/rahulahire" target="_blank" rel="noopener noreferrer">Support</a>
+            </a> */}
             <div className="navbar-gearbox" onClick={open_setting_box}>
               <img src={gear} alt="Setting Icon" />
             </div>
