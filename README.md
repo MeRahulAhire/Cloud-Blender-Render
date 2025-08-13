@@ -7,7 +7,10 @@ This project allows you to access 3000+ USD GPU for under a 1 USD/hour meaning y
 
 ### Video Demo
 
-https://github.com/user-attachments/assets/3409494a-fe44-4ade-a8f9-62f51b690a46
+<a href="https://youtu.be/feiuoMz57Ho" target="_blank">
+<img width="1920" height="1080" alt="Github cover thumbnail" src="https://github.com/user-attachments/assets/bbdf2d4a-0b1e-41dc-a0f6-5b4940f90e58" />
+
+</a>
 
 ### Requirement
 This project will only run on Chrome or Chromium based browsers like Chrome, Edge, Opera, Chromium, Vivaldi, etc. This project utilise [`showDirectoryPicker`](https://developer.mozilla.org/en-US/docs/Web/API/Window/showDirectoryPicker) API which allows user to write files directly on their folder without needing to download a large zip or many files. If you're using Firefox or Safari as your dialy driver and want to use this project, please considering downloading Chrome or any Chromium based browser as Firefox and Safari doesn't properly support this functionality.
