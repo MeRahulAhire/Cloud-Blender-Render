@@ -115,68 +115,78 @@ export default function Fileinput() {
   // );
 
   const onDrop = useCallback(
-    async (acceptFiles) => {
-      const file = acceptFiles[0];
-      const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB chunks
-      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  
-      const fileId = `${Date.now()}${Math.random().toString(36).slice(2, 11)}`;
-  
-      set_upload_percentage(0);
-  
-      try {
-        // limit concurrency to 10 uploads at once
-        const limit = pLimit(10);
-  
-        let uploadedChunks = 0;
-  
-        const uploadPromises = Array.from({ length: totalChunks }, (_, chunkIndex) =>
-          limit(async () => {
-            const start = chunkIndex * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
-            const chunk = file.slice(start, end);
-  
-            const formData = new FormData();
-            formData.append("file", chunk);
-            formData.append("chunk_index", chunkIndex.toString());
-            formData.append("total_chunks", totalChunks.toString());
-            formData.append("file_name", file.name);
-            formData.append("file_id", fileId);
-  
-            const response = await axios.post(
-              `${base_url}/upload_blend_file`,
-              formData,
-              {
-                headers: { "Content-Type": "multipart/form-data" },
-                withCredentials: true,
-              }
-            );
-  
-            // update progress when this chunk finishes
-            uploadedChunks++;
-            const percentage = Math.round((uploadedChunks * 100) / totalChunks);
-            set_upload_percentage(percentage);
-  
-            return response;
-          })
-        );
-  
-        const responses = await Promise.all(uploadPromises);
-  
-        if (responses.some((r) => r.status === 200)) {
-          console.log("✅ Upload completed successfully");
-          fetch_data();
-        }
-      } catch (error) {
-        console.error("❌ Parallel upload failed:", error);
-        set_upload_percentage(0);
+  async (acceptFiles) => {
+    const file = acceptFiles[0];
+    const CHUNK_SIZE = 5 * 1024 * 1024;
+    const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+    const fileId = `${Date.now()}${Math.random().toString(36).slice(2, 11)}`;
+
+    set_upload_percentage(0);
+
+    try {
+      // First, send chunk 0 to establish session
+      const firstChunk = file.slice(0, Math.min(CHUNK_SIZE, file.size));
+      const firstFormData = new FormData();
+      firstFormData.append("file", firstChunk);
+      firstFormData.append("chunk_index", "0");
+      firstFormData.append("total_chunks", totalChunks.toString());
+      firstFormData.append("file_name", file.name);
+      firstFormData.append("file_id", fileId);
+
+      await axios.post(`${base_url}/upload_blend_file`, firstFormData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+
+      let uploadedChunks = 1;
+      set_upload_percentage(Math.round((1 * 100) / totalChunks));
+
+      // If only one chunk, we're done
+      if (totalChunks === 1) {
         fetch_data();
+        return;
       }
-    },
-    [base_url, set_upload_percentage, fetch_data]
-  );
 
+      // Now send remaining chunks in parallel
+      const limit = pLimit(10);
+      const remainingPromises = Array.from({ length: totalChunks - 1 }, (_, i) => {
+        const chunkIndex = i + 1;
+        return limit(async () => {
+          const start = chunkIndex * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunk = file.slice(start, end);
 
+          const formData = new FormData();
+          formData.append("file", chunk);
+          formData.append("chunk_index", chunkIndex.toString());
+          formData.append("total_chunks", totalChunks.toString());
+          formData.append("file_name", file.name);
+          formData.append("file_id", fileId);
+
+          const response = await axios.post(`${base_url}/upload_blend_file`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+            withCredentials: true,
+          });
+
+          uploadedChunks++;
+          const percentage = Math.round((uploadedChunks * 100) / totalChunks);
+          set_upload_percentage(percentage);
+
+          return response;
+        });
+      });
+
+      await Promise.all(remainingPromises);
+      fetch_data();
+
+    } catch (error) {
+      console.error("❌ Upload failed:", error);
+      set_upload_percentage(0);
+      fetch_data();
+    }
+  },
+  [base_url, set_upload_percentage, fetch_data]
+);
   
   const { acceptFiles, getRootProps, getInputProps } = useDropzone({
     onDrop,
