@@ -7,6 +7,7 @@ import addFile from "../assets/icons/file-upload.svg";
 import deleteIcon from "../assets/icons/trash.svg";
 import central_store from "./Store";
 import axios from "axios";
+import pLimit from "p-limit";
 
 export default function Fileinput() {
   const fetch_data = central_store((state) => state.fetch_data);
@@ -32,118 +33,142 @@ export default function Fileinput() {
     });
   };
 
+  
   // const onDrop = useCallback(
-  //   (acceptFiles) => {
+  //   async (acceptFiles) => {
   //     const file = acceptFiles[0];
-  //     const formData = new FormData();
-  //     formData.append("file", file);
-
-  //     axios
-  //       .post(`${base_url}/upload_blend_file`, formData, {
-  //         headers: {
-  //           "Content-Type": "multipart/form-data",
-  //         },
-  //         onUploadProgress: (progressEvent) => {
-  //           const percentage = Math.round(
-  //             (progressEvent.loaded * 100) / progressEvent.total
-  //           );
+  //     const CHUNK_SIZE = 1 * 1024 * 1024; // 20MB chunks
+  //     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      
+  //     // Generate unique file_id for this upload session
+  //     const fileId = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+      
+  //     let uploadedChunks = 0;
+      
+  //     try {
+  //       // Reset upload percentage at start
+  //       set_upload_percentage(0);
+        
+  //       // Upload chunks sequentially
+  //       for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+  //         const start = chunkIndex * CHUNK_SIZE;
+  //         const end = Math.min(start + CHUNK_SIZE, file.size);
+  //         const chunk = file.slice(start, end);
+          
+  //         const formData = new FormData();
+  //         formData.append("file", chunk);
+  //         formData.append("chunk_index", chunkIndex.toString());
+  //         formData.append("total_chunks", totalChunks.toString());
+  //         formData.append("file_name", file.name);
+  //         formData.append("file_id", fileId);
+          
+  //         try {
+  //           const response = await axios.post(`${base_url}/upload_blend_file`, formData, {
+  //             headers: {
+  //               "Content-Type": "multipart/form-data",
+  //             },
+  //             withCredentials: true,
+  //           });
+            
+  //           uploadedChunks++;
+            
+  //           // Update progress based on chunks uploaded
+  //           const percentage = Math.round((uploadedChunks * 100) / totalChunks);
   //           set_upload_percentage(percentage);
-  //         },
-  //         withCredentials : true,
-  //       })
-  //       .then((res) => {
-  //         if (res.status === 200) {
+            
+  //           // Check if upload is complete (status 200) or continuing (status 202)
+  //           if (response.status === 200) {
+  //             // Upload completed successfully
+  //             console.log("Upload completed successfully");
+  //             fetch_data();
+  //             return;
+  //           } else if (response.status === 202) {
+  //             // Chunk uploaded, continue with next chunk
+  //             // console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded`);
+  //           }
+            
+  //         } catch (chunkError) {
+  //           console.error(`Failed to upload chunk ${chunkIndex}:`, chunkError);
+            
+  //           // If it's a session validation error (400), restart is needed
+  //           if (chunkError.response?.status === 400) {
+  //             console.error("Upload session invalid, restart required");
+  //             set_upload_percentage(0);
+  //             fetch_data();
+  //             return;
+  //           }
+            
+  //           // For other errors, also reset and refresh data
+  //           set_upload_percentage(0);
   //           fetch_data();
+  //           return;
   //         }
-  //       })
-  //       .catch((err) => {
-  //         console.error("Upload failed", err);
-  //         set_upload_percentage(0);
-  //         fetch_data();
-  //       });
-
-  //     // console.log(acceptFiles[0].name);
-  //     // console.log(blend_file);
-  //     // set_progress_bar_status(true);
-  //     // set_blend_file_name(acceptFiles[0].name);
-  //     // set_file_btn(true);
+  //       }
+        
+  //     } catch (error) {
+  //       console.error("Upload failed:", error);
+  //       set_upload_percentage(0);
+  //       fetch_data();
+  //     }
   //   },
-  //   [set_upload_percentage]
+  //   [base_url, set_upload_percentage, fetch_data]
   // );
 
   const onDrop = useCallback(
     async (acceptFiles) => {
       const file = acceptFiles[0];
-      const CHUNK_SIZE = 1 * 1024 * 1024; // 20MB chunks
+      const CHUNK_SIZE = 5 * 1024 * 1024; // 5 MB chunks
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      
-      // Generate unique file_id for this upload session
-      const fileId = `${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
-      
-      let uploadedChunks = 0;
-      
+  
+      const fileId = `${Date.now()}${Math.random().toString(36).slice(2, 11)}`;
+  
+      set_upload_percentage(0);
+  
       try {
-        // Reset upload percentage at start
-        set_upload_percentage(0);
-        
-        // Upload chunks sequentially
-        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
-          const start = chunkIndex * CHUNK_SIZE;
-          const end = Math.min(start + CHUNK_SIZE, file.size);
-          const chunk = file.slice(start, end);
-          
-          const formData = new FormData();
-          formData.append("file", chunk);
-          formData.append("chunk_index", chunkIndex.toString());
-          formData.append("total_chunks", totalChunks.toString());
-          formData.append("file_name", file.name);
-          formData.append("file_id", fileId);
-          
-          try {
-            const response = await axios.post(`${base_url}/upload_blend_file`, formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-              withCredentials: true,
-            });
-            
+        // limit concurrency to 10 uploads at once
+        const limit = pLimit(10);
+  
+        let uploadedChunks = 0;
+  
+        const uploadPromises = Array.from({ length: totalChunks }, (_, chunkIndex) =>
+          limit(async () => {
+            const start = chunkIndex * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunk = file.slice(start, end);
+  
+            const formData = new FormData();
+            formData.append("file", chunk);
+            formData.append("chunk_index", chunkIndex.toString());
+            formData.append("total_chunks", totalChunks.toString());
+            formData.append("file_name", file.name);
+            formData.append("file_id", fileId);
+  
+            const response = await axios.post(
+              `${base_url}/upload_blend_file`,
+              formData,
+              {
+                headers: { "Content-Type": "multipart/form-data" },
+                withCredentials: true,
+              }
+            );
+  
+            // update progress when this chunk finishes
             uploadedChunks++;
-            
-            // Update progress based on chunks uploaded
             const percentage = Math.round((uploadedChunks * 100) / totalChunks);
             set_upload_percentage(percentage);
-            
-            // Check if upload is complete (status 200) or continuing (status 202)
-            if (response.status === 200) {
-              // Upload completed successfully
-              console.log("Upload completed successfully");
-              fetch_data();
-              return;
-            } else if (response.status === 202) {
-              // Chunk uploaded, continue with next chunk
-              // console.log(`Chunk ${chunkIndex + 1}/${totalChunks} uploaded`);
-            }
-            
-          } catch (chunkError) {
-            console.error(`Failed to upload chunk ${chunkIndex}:`, chunkError);
-            
-            // If it's a session validation error (400), restart is needed
-            if (chunkError.response?.status === 400) {
-              console.error("Upload session invalid, restart required");
-              set_upload_percentage(0);
-              fetch_data();
-              return;
-            }
-            
-            // For other errors, also reset and refresh data
-            set_upload_percentage(0);
-            fetch_data();
-            return;
-          }
+  
+            return response;
+          })
+        );
+  
+        const responses = await Promise.all(uploadPromises);
+  
+        if (responses.some((r) => r.status === 200)) {
+          console.log("✅ Upload completed successfully");
+          fetch_data();
         }
-        
       } catch (error) {
-        console.error("Upload failed:", error);
+        console.error("❌ Parallel upload failed:", error);
         set_upload_percentage(0);
         fetch_data();
       }
