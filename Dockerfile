@@ -13,16 +13,6 @@ RUN apt-get update && \
       libsm-dev libxkbcommon-x11-dev imagemagick && \
     rm -rf /var/lib/apt/lists/*
 
-# NVIDIA CUDA 12.4 toolkit + NVML headers
-# RUN wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2204/x86_64/cuda-keyring_1.0-1_all.deb && \
-#     dpkg -i cuda-keyring_1.0-1_all.deb && \
-#     rm cuda-keyring_1.0-1_all.deb && \
-#     apt-get update && \
-#     apt-get install -y --no-install-recommends \
-#       cuda-toolkit-12-4 \
-#       libnvidia-ml-dev && \
-#     rm -rf /var/lib/apt/lists/*
-
 # Environment setup
 ENV LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu"
 ENV PATH="/usr/local/cuda/bin:${PATH}"
@@ -40,13 +30,13 @@ RUN wget https://dragonflydb.gateway.scarf.sh/latest/dragonfly-x86_64.tar.gz && 
     rm dragonfly-x86_64.tar.gz
 
 # Blender CLI
-RUN wget https://download.blender.org/release/Blender4.5/blender-4.5.1-linux-x64.tar.xz && \
+RUN wget https://download.blender.org/release/Blender4.5/blender-4.5.2-linux-x64.tar.xz && \
     mkdir /app/blender && \
-    tar xf blender-4.5.1-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
-    rm blender-4.5.1-linux-x64.tar.xz
+    tar xf blender-4.5.2-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
+    rm blender-4.5.2-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
-RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.4.0/Cloud-Blender-Render && \
+RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.4.1/Cloud-Blender-Render && \
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
