@@ -7,5 +7,19 @@
 
 .app-max-width{
     width: 100%;
-    max-width: 2000px;
+    /* Removed fixed max-width for normal screens */
+}
+
+/* For super ultrawide monitors (21:9 to 32:9) - optional middle ground */
+@media (min-aspect-ratio: 21/9) and (max-aspect-ratio: 32/9) and (min-width: 2560px) {
+    .app-max-width {
+        max-width: 75%;
+    }
+}
+
+/* For ultrawide monitors (32:9 and wider) */
+@media (min-aspect-ratio: 32/9) and (min-width: 3440px) {
+    .app-max-width {
+        max-width: 50%;
+    }
 }

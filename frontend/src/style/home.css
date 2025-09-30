@@ -3,9 +3,6 @@
   width: 100%;
   height: auto;
   background-image: url("../assets/images/dark-gradient.webp");
-  
-  /* background-size: cover; */
-  /* background: #0f0f0f; */
 }
 
 .home-container-display {
@@ -22,37 +19,22 @@
 }
 .home-container-display-control {
   grid-area: b;
-  
 }
 
-/* @media screen and (max-width: 1500px) {
-  .home-container-display {
-    grid-template-columns: 900px 400px;
-  }
-}
-@media screen and (max-width: 1400px) {
-  .home-container-display {
-    grid-template-columns: 800px 400px;
+
+/* For super ultrawide monitors (21:9 to 32:9) - optional middle ground */
+@media (min-aspect-ratio: 21/9) and (max-aspect-ratio: 32/9) and (min-width: 2560px) {
+  .home-container {
+    background-size: cover;
   }
 }
 
-@media screen and (max-width: 1300px) {
-  .home-container-display {
-    grid-template-columns: 700px 400px;
+/* For ultrawide monitors (32:9 and wider) */
+@media (min-aspect-ratio: 32/9) and (min-width: 3440px) {
+  .home-container {
+    background-size: cover;
   }
 }
-
-@media screen and (max-width: 1200px) {
-  .home-container-display {
-    grid-template-columns: 600px 400px;
-  }
-}
-
-@media screen and (max-width: 1025px) {
-  .home-container-display {
-    grid-template-columns: 500px 400px;
-  }
-} */
 @media screen and (max-width: 1000px) {
   .home-container-display {
     grid-template-areas:
@@ -74,8 +56,6 @@
     margin-right: 1rem;
   }
 }
-
-
 
 @media screen and (max-width: 426px) {
   .home-container-display-control {
