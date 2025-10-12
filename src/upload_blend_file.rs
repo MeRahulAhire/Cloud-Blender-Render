@@ -82,14 +82,15 @@ pub async fn upload_handler(
                     .filter_map(|entry| entry.ok())
                     .find(|entry| {
                         entry.path() != chunks_dir && 
-                        entry.file_type().ok().map_or(false, |ft| ft.is_file())
+                        entry.file_type().ok().map_or(false, |ft| ft.is_file()) &&
+                        entry.path().extension().and_then(|ext| ext.to_str()) == Some("blend")
                     })
             })
             .is_some()
         {
             return (
                 StatusCode::BAD_REQUEST,
-                "File already exists. Try deleting it before uploading.".to_string(),
+                "Blend file already exists. Try deleting it before uploading.".to_string(),
             );
         }
         
