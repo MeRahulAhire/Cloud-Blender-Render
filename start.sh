@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
+
 # Ensure required folders exist
-mkdir -p /workspace/temp /workspace/output /workspace/blend-folder /workspace/tmp_upload
+mkdir -p /workspace/temp /workspace/output /workspace/blend-folder /workspace/tmp_upload /workspace/extension
+
 # Copy from /app if missing
 if [ ! -e "/workspace/dragonfly-x86_64" ]; then
     echo "Copying dragonfly-x86_64 from /app to /workspace"
@@ -30,23 +32,37 @@ if [ ! -e "/workspace/cycles_optix_denoise_logic.py" ]; then
 else
     echo "cycles_optix_denoise_logic.py already exists in /workspace"
 fi
+
+if [ ! -e "/workspace/watch_extensions.sh" ]; then
+    echo "Copying watch_extensions.sh from /app to /workspace"
+    cp "/app/watch_extensions.sh" "/workspace/"
+    chmod +x "/workspace/watch_extensions.sh"
+else
+    echo "watch_extensions.sh already exists in /workspace"
+fi
+
 # Set env variables including Node.js
 export PATH="/workspace/blender:/root/.nvm/versions/node/v22.19.0/bin:$PATH"
 export LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu"
 export TMPDIR=/workspace/tmp_upload
 export NVM_DIR="/root/.nvm"
+
 # Source nvm for this session
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
 # Verify Node.js installation
 echo "Node.js version: $(node -v)"
 echo "npm version: $(npm -v)"
+
 # Start DragonflyDB in background
 echo "Starting DragonflyDB..."
 /workspace/dragonfly-x86_64 --bind 0.0.0.0 --port 6379 &
 sleep 5
+
 # Start Cloud-Blender-Render in background
 echo "Starting Cloud-Blender-Render..."
 /workspace/Cloud-Blender-Render &
+
 # Start Jupyter Lab in background with dark theme configuration
 echo "Starting Jupyter Lab..."
 jupyter lab \
@@ -60,13 +76,25 @@ jupyter lab \
     --ServerApp.allow_origin='*' \
     --ServerApp.disable_check_xsrf=True \
     --FileContentsManager.delete_to_trash=False &
+
+# Start Extension Watcher in background
+echo "Starting Blender Extension Watcher..."
+/workspace/watch_extensions.sh &
+
 # Give services time to start
 sleep 5
+
 echo "All services started:"
 echo "- DragonflyDB running on port 6379"
 echo "- Cloud-Blender-Render running"
 echo "- Jupyter Lab running on port 8888 (Dark Mode enabled)"
 echo "- Node.js $(node -v) available"
+echo "- Blender Extension Watcher monitoring /workspace/extension/"
 echo "- Access Jupyter Lab at: http://localhost:8888"
+echo ""
+echo "To install Blender extensions:"
+echo "  1. Drop .zip or .whl files into /workspace/extension/"
+echo "  2. Extensions will be automatically installed and enabled"
+
 # Keep the container running
 tail -f /dev/null
