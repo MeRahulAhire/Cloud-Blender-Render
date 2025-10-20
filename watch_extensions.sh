@@ -53,13 +53,11 @@ done
 echo "[$(date)] Starting file watcher..." >> "$LOG_FILE"
 echo "[$(date)] Monitoring $WATCH_DIR for new extensions..."
 
-# Watch for new files (CREATE and MOVED_TO events)
-inotifywait -m -e create -e moved_to --format '%w%f' "$WATCH_DIR" | while read file_path
+# Watch for close_write event (file fully written and closed)
+# This ensures the file is completely transferred before processing
+inotifywait -m -e close_write --format '%w%f' "$WATCH_DIR" | while read file_path
 do
-    # Give a small delay to ensure file is fully written
-    sleep 1
-    
-    # Check if file still exists (wasn't just temporarily created)
+    # Check if file exists and is a valid extension file
     if [ -f "$file_path" ]; then
         install_extension "$file_path"
     fi
