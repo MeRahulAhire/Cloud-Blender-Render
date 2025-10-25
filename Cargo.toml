@@ -28,3 +28,4 @@ sysinfo = "0.35.2"
 tempfile = "3.19.1"
 tokio = { version = "1.44.2", features = ["full"] }
 tower-http = { version = "0.6.4", features = ["cors", "fs", "set-header"] }
+zip = "6.0.0"

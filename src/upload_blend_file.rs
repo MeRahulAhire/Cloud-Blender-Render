@@ -60,12 +60,12 @@ pub async fn upload_handler(
 
     // Validate file extension early
     let safe_name = sanitize(&file_name);
-    if !is_blend_file(&safe_name) {
+    if !is_blend_or_zip_file(&safe_name) {
         // Cleanup any existing chunks for this file_id
         cleanup_chunks(&chunks_dir, &file_id);
         return (
             StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            format!("We only accept .blend file. Please try again"),
+            format!("We only accept .blend or .zip file. Please try again"),
         );
     }
 
@@ -160,7 +160,51 @@ pub async fn upload_handler(
     // Debug logging
     // println!("DEBUG: chunk_index={}, total_chunks={}, received_chunks={}", chunk_index, total_chunks, received_chunks);
     
-    // Fix: Handle both single chunk (≤10MB) and multi-chunk (>10MB) files
+    // Fix: Handle both single chunk (≤5MB) and multi-chunk (>5MB) files
+    // if received_chunks == total_chunks {
+    //     // All chunks received, assemble the file
+    //     let target_path = upload_dir.join(&safe_name);
+        
+    //     match assemble_chunks(&chunks_dir, &file_id, &target_path, total_chunks).await {
+    //         Ok(_) => {
+    //             // Clean up chunk files and session
+    //             cleanup_upload_session(&chunks_dir, &file_id);
+                
+    //             // Update database with success
+    //             let data = json!({
+    //                 "blend_file": {
+    //                     "is_present": true,
+    //                     "file_name": &safe_name,
+    //                 },
+    //             });
+                
+    //             if let Err(e) = update(data) {
+    //                 return (
+    //                     StatusCode::INTERNAL_SERVER_ERROR,
+    //                     format!("Failed to update Redis: {}", e),
+    //                 );
+    //             }
+
+    //             return (
+    //                 StatusCode::OK,
+    //                 "Blend file uploaded successfully".to_string(),
+    //             );
+    //         }
+    //         Err(e) => {
+    //             cleanup_upload_session(&chunks_dir, &file_id);
+    //             return (
+    //                 StatusCode::INTERNAL_SERVER_ERROR,
+    //                 format!("Failed to assemble chunks: {}", e),
+    //             );
+    //         }
+    //     }
+    // } else {
+    //     // More chunks expected - this should only happen for multi-chunk files
+    //     return (
+    //         StatusCode::ACCEPTED,
+    //         format!("Chunk {} of {} received", chunk_index + 1, total_chunks),
+    //     );
+    // }
     if received_chunks == total_chunks {
         // All chunks received, assemble the file
         let target_path = upload_dir.join(&safe_name);
@@ -170,25 +214,63 @@ pub async fn upload_handler(
                 // Clean up chunk files and session
                 cleanup_upload_session(&chunks_dir, &file_id);
                 
-                // Update database with success
-                let data = json!({
-                    "blend_file": {
-                        "is_present": true,
-                        "file_name": &safe_name,
-                    },
-                });
-                
-                if let Err(e) = update(data) {
+                // Check if the file is a .blend file
+                if safe_name.to_lowercase().ends_with(".blend") {
+                    // Update database with success for blend file
+                    let data = json!({
+                        "blend_file": {
+                            "is_present": true,
+                            "file_name": &safe_name,
+                        },
+                    });
+                    
+                    if let Err(e) = update(data) {
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            format!("Failed to update Redis: {}", e),
+                        );
+                    }
+    
                     return (
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        format!("Failed to update Redis: {}", e),
+                        StatusCode::OK,
+                        "Blend file uploaded successfully".to_string(),
+                    );
+                } 
+                // Check if the file is a .zip file
+                else if safe_name.to_lowercase().ends_with(".zip") {
+                    // Unzip the file
+                    match unzip_file(&target_path, &upload_dir) {
+                        Ok(_) => {
+                            // Delete the zip file after successful extraction
+                            if let Err(e) = fs::remove_file(&target_path) {
+                                return (
+                                    StatusCode::INTERNAL_SERVER_ERROR,
+                                    format!("Failed to delete zip file after extraction: {}", e),
+                                );
+                            }
+                            
+                            return (
+                                StatusCode::OK,
+                                "Zip file uploaded and extracted successfully".to_string(),
+                            );
+                        }
+                        Err(e) => {
+                            // Clean up the zip file on error
+                            let _ = fs::remove_file(&target_path);
+                            return (
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                format!("Failed to extract zip file: {}", e),
+                            );
+                        }
+                    }
+                } else {
+                    // This shouldn't happen due to earlier validation, but handle it anyway
+                    let _ = fs::remove_file(&target_path);
+                    return (
+                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
+                        "Unsupported file type".to_string(),
                     );
                 }
-
-                return (
-                    StatusCode::OK,
-                    "Blend file uploaded successfully".to_string(),
-                );
             }
             Err(e) => {
                 cleanup_upload_session(&chunks_dir, &file_id);
@@ -331,8 +413,53 @@ fn cleanup_chunks(chunks_dir: &PathBuf, file_id: &str) {
     }
 }
 
-// A regex function to check if the file is .blend file
-fn is_blend_file(file_name: &str) -> bool {
-    let re = Regex::new(r"(?i)\.blend$").unwrap();
+// Function to unzip a file to a target directory
+fn unzip_file(
+    zip_path: &PathBuf,
+    target_dir: &PathBuf,
+) -> Result<(), Box<dyn std::error::Error>> {
+    use std::fs::File;
+    use zip::ZipArchive;
+
+    let file = File::open(zip_path)?;
+    let mut archive = ZipArchive::new(file)?;
+
+    for i in 0..archive.len() {
+        let mut file = archive.by_index(i)?;
+        let outpath = match file.enclosed_name() {
+            Some(path) => target_dir.join(path),
+            None => continue,
+        };
+
+        if file.name().ends_with('/') {
+            // It's a directory
+            fs::create_dir_all(&outpath)?;
+        } else {
+            // It's a file
+            if let Some(parent) = outpath.parent() {
+                if !parent.exists() {
+                    fs::create_dir_all(parent)?;
+                }
+            }
+            let mut outfile = File::create(&outpath)?;
+            std::io::copy(&mut file, &mut outfile)?;
+        }
+
+        // Set permissions on Unix systems
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            if let Some(mode) = file.unix_mode() {
+                fs::set_permissions(&outpath, fs::Permissions::from_mode(mode))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+// A regex function to check if the file is .blend or .zip file
+fn is_blend_or_zip_file(file_name: &str) -> bool {
+    let re = Regex::new(r"(?i)\.(?:blend|zip)$").unwrap();
     re.is_match(file_name)
 }
