@@ -12,6 +12,8 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::mpsc::channel;
 use std::thread;
+use std::time::{Duration, Instant};
+use std::fs::metadata;
 
 pub fn live_image_preview_handler(socket: SocketRef) {
     thread::spawn(move || {
@@ -47,6 +49,12 @@ pub fn live_image_preview_handler(socket: SocketRef) {
 
 pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     let image_path = PathBuf::from("output").join(&name);
+
+    if !wait_for_file_stability(&image_path, Duration::from_secs(5)) {
+        eprintln!("File {} did not stabilize in time", name);
+        return;
+    }
+
     let image = Image::<f32, Rgba>::open(&image_path).unwrap();
 
     let image_format = FileFormat::from_file(&image_path).unwrap();
@@ -61,6 +69,7 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
         {
             eprintln!("Emit error: {:?}", err);
         }
+        return;
     }
 
     let size = image.size();
@@ -96,4 +105,46 @@ pub fn image_resize_and_stream(name: &str, sock: &SocketRef) {
     if let Err(err) = sock.emit("live_base64", &live_image_data) {
         eprintln!("live image error: {:?}", err);
     }
+}
+
+
+
+
+
+fn wait_for_file_stability(path: &PathBuf, timeout: Duration) -> bool {
+    let start = Instant::now();
+    let mut last_size = 0;
+    let stable_duration = Duration::from_millis(500); // File must be stable for 500ms
+    let mut stable_since = None::<Instant>;
+    
+    while start.elapsed() < timeout {
+        match metadata(path) {
+            Ok(meta) => {
+                let current_size = meta.len();
+                
+                if current_size == last_size && last_size > 0 {
+                    // Size hasn't changed
+                    if let Some(stable_time) = stable_since {
+                        if stable_time.elapsed() >= stable_duration {
+                            return true; // File is stable!
+                        }
+                    } else {
+                        stable_since = Some(Instant::now());
+                    }
+                } else {
+                    // Size changed, reset stability timer
+                    stable_since = None;
+                    last_size = current_size;
+                }
+            }
+            Err(_) => {
+                // File doesn't exist or can't be read yet
+                stable_since = None;
+            }
+        }
+        
+        thread::sleep(Duration::from_millis(100));
+    }
+    
+    false
 }
