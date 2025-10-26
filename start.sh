@@ -1,6 +1,26 @@
 #!/bin/bash
 set -e
 
+# Purge existing ImageMagick installation
+apt-get purge -y imagemagick imagemagick-6-common imagemagick-6.q16 libmagickcore-6.q16-6 libmagickwand-6.q16-6 2>/dev/null || true
+apt-get autoremove -y
+apt-get clean
+
+# Reinstall ImageMagick with HDRI and OpenEXR support
+apt-get update
+apt-get install -y imagemagick libmagickcore-6.q16hdri-6-extra libopenexr-dev
+apt-get upgrade -y
+
+# Verify EXR support
+if identify -list format | grep -qi exr; then
+    echo "✓ ImageMagick OpenEXR support confirmed"
+else
+    echo "⚠ Warning: OpenEXR support not detected"
+fi
+
+echo "=== ImageMagick setup complete ==="
+echo ""
+
 # Ensure required folders exist
 mkdir -p /workspace/temp /workspace/output /workspace/blend-folder /workspace/tmp_upload /workspace/extension
 
