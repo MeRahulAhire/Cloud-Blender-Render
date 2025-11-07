@@ -145,7 +145,7 @@ async fn main() {
         )
         .route(
             "/upload_extension_file",
-            post(upload_extension_file::extension_upload_handler),
+            post(upload_extension_file::upload_extension_handler),
         )
         .route(
             "/delete_blend_file",

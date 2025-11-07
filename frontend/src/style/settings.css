@@ -17,8 +17,8 @@
  
  .settings-box{
    width: 42.5rem;
-   height: 15rem;
-   max-height: auto;
+   min-height: 15rem;
+   height: auto;
    background: #1d1d1d;
    border-radius: 1rem;
    z-index: 5;
@@ -128,14 +128,14 @@
  }
  
  .sb-blender-version-dialogue{
-   position: absolute;
    color: rgba(247, 247, 247, 0.3);
    font-family: lato;
    width: 100%;
-   /* left :1rem; */
    text-align: center;
    bottom: 1rem;
    font-size: 1rem;
+   margin-top: 1rem;
+   margin-bottom: 0.75rem;
    
  
  }

@@ -1,12 +1,12 @@
 use axum::{http::StatusCode, response::IntoResponse};
 use axum_typed_multipart::{FieldData, TryFromMultipart, TypedMultipart};
-use regex::Regex;
 use sanitize_filename::sanitize;
+use serde_json::json;
 use std::{fs::{self, File, OpenOptions}, io::{Read, Write}, path::PathBuf};
 use tempfile::NamedTempFile;
 
 #[derive(TryFromMultipart)]
-pub struct ExtensionUploadForm {
+pub struct UploadExtensionForm {
     #[form_data(limit = "unlimited")]
     #[form_data(field_name = "file")]
     file: FieldData<NamedTempFile>,
@@ -24,22 +24,22 @@ pub struct ExtensionUploadForm {
     file_id: String,
 }
 
-pub async fn extension_upload_handler(
-    TypedMultipart(ExtensionUploadForm { 
+pub async fn upload_extension_handler(
+    TypedMultipart(UploadExtensionForm { 
         file, 
         chunk_index, 
         total_chunks, 
         file_name, 
         file_id 
-    }): TypedMultipart<ExtensionUploadForm>,
+    }): TypedMultipart<UploadExtensionForm>,
 ) -> impl IntoResponse {
-    // 1. Check if extension folder exist. If not then create it.
+    // 1. Check if extension folder exists. If not, create it.
     let upload_dir = PathBuf::from("extension");
     if !upload_dir.exists() {
         if let Err(e) = fs::create_dir_all(&upload_dir) {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to create upload directory. Error : {}", e),
+                format!("Failed to create extension directory. Error: {}", e),
             );
         }
     }
@@ -50,26 +50,28 @@ pub async fn extension_upload_handler(
         if let Err(e) = fs::create_dir_all(&chunks_dir) {
             return (
                 StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to create chunks directory. Error : {}", e),
+                format!("Failed to create chunks directory. Error: {}", e),
             );
         }
     }
 
-    // Validate file extension early
     let safe_name = sanitize(&file_name);
-    if !is_zip_or_whl_file(&safe_name) {
-        // Cleanup any existing chunks for this file_id
-        cleanup_chunks(&chunks_dir, &file_id);
-        return (
-            StatusCode::UNSUPPORTED_MEDIA_TYPE,
-            format!("We only accept .zip or .whl file. Please try again"),
-        );
-    }
 
     // 2. If this is the first chunk, handle existing files and cleanup old uploads
     if chunk_index == 0 {
         // First, cleanup any existing chunks for this file_id (handles page reload/restart)
         cleanup_chunks(&chunks_dir, &file_id);
+        
+        // Check if the same file exists and delete it (override behavior)
+        let existing_file_path = upload_dir.join(&safe_name);
+        if existing_file_path.exists() && existing_file_path.is_file() {
+            if let Err(e) = fs::remove_file(&existing_file_path) {
+                return (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    format!("Failed to delete existing file: {}", e),
+                );
+            }
+        }
         
         // Create upload session metadata file
         if let Err(e) = create_upload_session(&chunks_dir, &file_id, &safe_name, total_chunks) {
@@ -142,49 +144,11 @@ pub async fn extension_upload_handler(
             Ok(_) => {
                 // Clean up chunk files and session
                 cleanup_upload_session(&chunks_dir, &file_id);
-                
-                // Check if the file is a .zip file
-                if safe_name.to_lowercase().ends_with(".zip") {
-                    // Unzip the file
-                    match unzip_file(&target_path, &upload_dir) {
-                        Ok(_) => {
-                            // Delete the zip file after successful extraction
-                            if let Err(e) = fs::remove_file(&target_path) {
-                                return (
-                                    StatusCode::INTERNAL_SERVER_ERROR,
-                                    format!("Failed to delete zip file after extraction: {}", e),
-                                );
-                            }
-                            
-                            return (
-                                StatusCode::OK,
-                                "Zip file uploaded and extracted successfully".to_string(),
-                            );
-                        }
-                        Err(e) => {
-                            // Clean up the zip file on error
-                            let _ = fs::remove_file(&target_path);
-                            return (
-                                StatusCode::INTERNAL_SERVER_ERROR,
-                                format!("Failed to extract zip file: {}", e),
-                            );
-                        }
-                    }
-                } 
-                // Check if the file is a .whl file
-                else if safe_name.to_lowercase().ends_with(".whl") {
-                    return (
-                        StatusCode::OK,
-                        "Whl file uploaded successfully".to_string(),
-                    );
-                } else {
-                    // This shouldn't happen due to earlier validation, but handle it anyway
-                    let _ = fs::remove_file(&target_path);
-                    return (
-                        StatusCode::UNSUPPORTED_MEDIA_TYPE,
-                        "Unsupported file type".to_string(),
-                    );
-                }
+
+                return (
+                    StatusCode::OK,
+                    format!("Extension file '{}' uploaded successfully", safe_name),
+                );
             }
             Err(e) => {
                 cleanup_upload_session(&chunks_dir, &file_id);
@@ -195,7 +159,7 @@ pub async fn extension_upload_handler(
             }
         }
     } else {
-        // More chunks expected - this should only happen for multi-chunk files
+        // More chunks expected
         return (
             StatusCode::ACCEPTED,
             format!("Chunk {} of {} received", chunk_index + 1, total_chunks),
@@ -206,7 +170,7 @@ pub async fn extension_upload_handler(
 // Function to count chunks for a specific file_id
 fn count_chunks_for_file(chunks_dir: &PathBuf, file_id: &str) -> u32 {
     if let Ok(entries) = fs::read_dir(chunks_dir) {
-        let chunk_count = entries
+        entries
             .filter_map(|entry| entry.ok())
             .filter(|entry| {
                 let binding = entry.file_name();
@@ -217,9 +181,7 @@ fn count_chunks_for_file(chunks_dir: &PathBuf, file_id: &str) -> u32 {
                 !file_name.ends_with("_session.json") &&
                 file_name.chars().skip(file_id.len() + 1).all(|c| c.is_ascii_digit())
             })
-            .count() as u32;
-        
-        chunk_count
+            .count() as u32
     } else {
         0
     }
@@ -258,8 +220,6 @@ fn create_upload_session(
     file_name: &str,
     total_chunks: u32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    use serde_json::json;
-    
     let session_data = json!({
         "file_name": file_name,
         "total_chunks": total_chunks,
@@ -325,55 +285,4 @@ fn cleanup_chunks(chunks_dir: &PathBuf, file_id: &str) {
             }
         }
     }
-}
-
-// Function to unzip a file to a target directory
-fn unzip_file(
-    zip_path: &PathBuf,
-    target_dir: &PathBuf,
-) -> Result<(), Box<dyn std::error::Error>> {
-    use std::fs::File;
-    use zip::ZipArchive;
-
-    let file = File::open(zip_path)?;
-    let mut archive = ZipArchive::new(file)?;
-
-    for i in 0..archive.len() {
-        let mut file = archive.by_index(i)?;
-        let outpath = match file.enclosed_name() {
-            Some(path) => target_dir.join(path),
-            None => continue,
-        };
-
-        if file.name().ends_with('/') {
-            // It's a directory
-            fs::create_dir_all(&outpath)?;
-        } else {
-            // It's a file
-            if let Some(parent) = outpath.parent() {
-                if !parent.exists() {
-                    fs::create_dir_all(parent)?;
-                }
-            }
-            let mut outfile = File::create(&outpath)?;
-            std::io::copy(&mut file, &mut outfile)?;
-        }
-
-        // Set permissions on Unix systems
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            if let Some(mode) = file.unix_mode() {
-                fs::set_permissions(&outpath, fs::Permissions::from_mode(mode))?;
-            }
-        }
-    }
-
-    Ok(())
-}
-
-// A regex function to check if the file is .zip or .whl file
-fn is_zip_or_whl_file(file_name: &str) -> bool {
-    let re = Regex::new(r"(?i)\.(?:zip|whl)$").unwrap();
-    re.is_match(file_name)
 }
