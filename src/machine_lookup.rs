@@ -26,8 +26,8 @@ pub fn cpu_stats(socket: SocketRef) {
 
             // println!("⚙️ CPU Usage: {:.2}%", usage_rounded); Debug flag
 
-            if let Err(err) = sock.emit("cpu_stats", &data) {
-                eprintln!("CPU stats error - {}", err);
+            if let Err(_err) = sock.emit("cpu_stats", &data) {
+                // eprintln!("CPU stats error - {}", err);
                 break;
             }
 
@@ -58,8 +58,8 @@ pub fn ram_stats(socket: SocketRef) {
 
             // println!("🧠 RAM: {:.2} GB used / {:.2} GB total", used_gb, total_gb);
 
-            if let Err(err) = sock.emit("ram_stats", &data) {
-                eprintln!("RAM stats error - {}", err);
+            if let Err(_err) = sock.emit("ram_stats", &data) {
+                // eprintln!("RAM stats error - {}", err);
                 break;
             }
 
@@ -141,8 +141,8 @@ pub fn gpu_util_stats(socket: SocketRef) {
 
             let data = Value::Object(stats_map);
             // println!("🖥️ GPU Stats: {}", &data);
-            if let Err(err) = sock.emit("gpu_util_stats", &data) {
-                eprintln!("GPU stats emit error: {}", err);
+            if let Err(_err) = sock.emit("gpu_util_stats", &data) {
+                // eprintln!("GPU stats emit error: {}", err);
                 break;
             }
 
@@ -231,8 +231,8 @@ pub fn gpu_mem_stats(socket: SocketRef) {
 
             let data = Value::Object(mem_map);
             // println!("🖥️ GPU Mem Stats (GB): {}", data);
-            if let Err(err) = sock.emit("gpu_mem_stats", &data) {
-                eprintln!("GPU mem stats emit error: {}", err);
+            if let Err(_err) = sock.emit("gpu_mem_stats", &data) {
+                // eprintln!("GPU mem stats emit error: {}", err);
                 break;
             }
 

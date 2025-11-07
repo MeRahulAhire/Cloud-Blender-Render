@@ -20,6 +20,7 @@ export default function Fileinput() {
     (state) => state.render_status.is_rendering
   );
   const base_url = central_store((state) => state.base_url);
+  const settings_box = central_store((state) => state.settings_box);
   const [is_dragging, set_is_dragging] = useState(false);
 
   const onDropRejected = (fileRejections) => {
@@ -127,6 +128,7 @@ export default function Fileinput() {
 
 
 const { acceptFiles, getRootProps, getInputProps } = useDropzone({
+  
   onDrop,
   onDropRejected,
   multiple: false,
@@ -134,53 +136,63 @@ const { acceptFiles, getRootProps, getInputProps } = useDropzone({
     "application/x-blender": [".blend"],
     "application/zip": [".zip"],
   },
+  disabled: !!settings_box || !!blend_file.is_present, 
+  noClick: !!settings_box || !!blend_file.is_present, 
+  noDrag: !!settings_box || !!blend_file.is_present, 
 });
 
-  useEffect(() => {
-    const handle_drag_enter = (e) => {
-      e.preventDefault();
+useEffect(() => {
+  const handle_drag_enter = (e) => {
+    e.preventDefault();
+    
+    // Only set dragging state if conditions allow upload
+    if (!settings_box && !blend_file.is_present) {
       set_is_dragging(true);
-    };
+    }
+  };
 
-    const handle_drag_leave = (e) => {
-      e.preventDefault();
-      //   setIsDragging(false);
+  const handle_drag_leave = (e) => {
+    e.preventDefault();
 
-      if (e.relatedTarget === null) {
-        set_is_dragging(false);
-      }
-    };
-
-    const handle_drag_over = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-    };
-
-    const handle_drop = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+    if (e.relatedTarget === null) {
       set_is_dragging(false);
+    }
+  };
 
-      if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-        const droppedFile = e.dataTransfer.files[0]; // Only use the first file
-        onDrop([droppedFile]);
-        e.dataTransfer.clearData();
-      }
-    };
+  const handle_drag_over = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
 
-    const window_listner = () => {
-      window.addEventListener("dragenter", handle_drag_enter);
-      window.addEventListener("dragleave", handle_drag_leave);
-      window.addEventListener("dragover", handle_drag_over);
-      window.addEventListener("drop", handle_drop);
-    };
+  const handle_drop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    set_is_dragging(false);
 
-    window_listner();
+    // Check conditions before allowing drop
+    if (settings_box || blend_file.is_present) {
+      return; // Don't process the drop if modal is open or file exists
+    }
 
-    return () => {
-      window_listner();
-    };
-  }, [onDrop]);
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      const droppedFile = e.dataTransfer.files[0]; // Only use the first file
+      onDrop([droppedFile]);
+      e.dataTransfer.clearData();
+    }
+  };
+
+  window.addEventListener("dragenter", handle_drag_enter);
+  window.addEventListener("dragleave", handle_drag_leave);
+  window.addEventListener("dragover", handle_drag_over);
+  window.addEventListener("drop", handle_drop);
+
+  return () => {
+    window.removeEventListener("dragenter", handle_drag_enter);
+    window.removeEventListener("dragleave", handle_drag_leave);
+    window.removeEventListener("dragover", handle_drag_over);
+    window.removeEventListener("drop", handle_drop);
+  };
+}, [onDrop, settings_box, blend_file.is_present]); // Add dependencies here
 
   return (
     <div
@@ -188,7 +200,7 @@ const { acceptFiles, getRootProps, getInputProps } = useDropzone({
         !!blend_file.is_present && "file-input-parent-toggle"
       }`}
     >
-      {!!is_dragging && !blend_file.is_present && <Overlay />}
+      {!!is_dragging && !!!settings_box && !blend_file.is_present && <Overlay />}
 
       {!!blend_file.is_present ? (
         <FileBtn

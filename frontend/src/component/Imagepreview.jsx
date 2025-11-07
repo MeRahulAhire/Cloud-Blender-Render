@@ -38,9 +38,17 @@ export default function Imagepreview() {
         fetch_data()
       };
     };
+
+    const stop_blender = (res) => {
+
+      if (!!res.finished === true) {
+        fetch_data()
+      }
+    }
   
     socket.on("live_base64", image_preview_socket);
     socket.on("render_stats", render_stats_socket);
+    socket.on("blend_process", stop_blender)
 
     function resizePreviewBox() {
       const width = image_preview_box.offsetWidth;

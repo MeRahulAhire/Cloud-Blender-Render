@@ -7,6 +7,7 @@ mod machine_lookup;
 mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
+mod upload_extension_file;
 
 use axum::{
     Router,
@@ -141,6 +142,10 @@ async fn main() {
         .route(
             "/upload_blend_file",
             post(upload_blend_file::upload_handler),
+        )
+        .route(
+            "/upload_extension_file",
+            post(upload_extension_file::extension_upload_handler),
         )
         .route(
             "/delete_blend_file",
