@@ -29,40 +29,23 @@
 
 import "../style/extensionupload.css";
 import zip from "../assets/icons/zip.svg";
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
+import { useDropzone } from "react-dropzone";
 import axios from "axios";
 import pLimit from "p-limit";
 import central_store from "./Store";
 
 export default function ExtensionUpload() {
   const [files, setFiles] = useState([]);
-  const [isDragging, setIsDragging] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const fileInputRef = useRef(null);
+  const [currentUploadIndex, setCurrentUploadIndex] = useState(-1);
   const base_url = central_store((state) => state.base_url);
 
-  const handleFiles = useCallback((selectedFiles) => {
-    const fileArray = Array.from(selectedFiles).map((file) => ({
-      file,
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}-${file.name}`,
-      name: file.name,
-      progress: 0,
-      status: "pending", // pending, uploading, completed, error
-    }));
-    setFiles((prev) => [...prev, ...fileArray]);
-  }, []);
-
-  const uploadFile = async (fileObj, index) => {
+  const uploadFile = async (fileObj) => {
     const CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
     const totalChunks = Math.ceil(fileObj.file.size / CHUNK_SIZE);
     const fileId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
 
     try {
-      // Update status to uploading
-      setFiles((prev) =>
-        prev.map((f, i) => (i === index ? { ...f, status: "uploading" } : f))
-      );
-
       // Upload first chunk to establish session
       const firstChunk = fileObj.file.slice(0, Math.min(CHUNK_SIZE, fileObj.file.size));
       const firstFormData = new FormData();
@@ -79,15 +62,15 @@ export default function ExtensionUpload() {
 
       let uploadedChunks = 1;
       const percentage = Math.round((1 * 100) / totalChunks);
+      
       setFiles((prev) =>
-        prev.map((f, i) => (i === index ? { ...f, progress: percentage } : f))
+        prev.map((f) =>
+          f.id === fileObj.id ? { ...f, progress: percentage } : f
+        )
       );
 
       // If only one chunk, we're done
       if (totalChunks === 1) {
-        setFiles((prev) =>
-          prev.map((f, i) => (i === index ? { ...f, status: "completed", progress: 100 } : f))
-        );
         return true;
       }
 
@@ -114,8 +97,11 @@ export default function ExtensionUpload() {
 
           uploadedChunks++;
           const newPercentage = Math.round((uploadedChunks * 100) / totalChunks);
+          
           setFiles((prev) =>
-            prev.map((f, i) => (i === index ? { ...f, progress: newPercentage } : f))
+            prev.map((f) =>
+              f.id === fileObj.id ? { ...f, progress: newPercentage } : f
+            )
           );
 
           return response;
@@ -123,121 +109,82 @@ export default function ExtensionUpload() {
       });
 
       await Promise.all(remainingPromises);
-
-      // Mark as completed
-      setFiles((prev) =>
-        prev.map((f, i) => (i === index ? { ...f, status: "completed", progress: 100 } : f))
-      );
-
       return true;
     } catch (error) {
       console.error(`❌ Upload failed for ${fileObj.name}:`, error);
-      setFiles((prev) =>
-        prev.map((f, i) => (i === index ? { ...f, status: "error" } : f))
-      );
       return false;
     }
   };
 
   const processQueue = useCallback(async () => {
-    if (isProcessing) return;
-    setIsProcessing(true);
+    if (files.length === 0 || currentUploadIndex >= 0) {
+      return;
+    }
 
-    // Process files one by one
     for (let i = 0; i < files.length; i++) {
-      if (files[i].status === "pending") {
-        const success = await uploadFile(files[i], i);
+      setCurrentUploadIndex(i);
+      
+      const success = await uploadFile(files[i]);
+      
+      if (success) {
+        // Wait a bit before removing
+        await new Promise(resolve => setTimeout(resolve, 500));
         
-        if (success) {
-          // Remove the completed file after a brief delay
-          await new Promise(resolve => setTimeout(resolve, 500));
-          setFiles((prev) => prev.filter((_, idx) => idx !== i));
-          // Adjust index since we removed an item
-          i--;
-        }
+        // Remove the completed file
+        setFiles((prev) => prev.filter((f) => f.id !== files[i].id));
+      } else {
+        // On error, mark it and move to next
+        setFiles((prev) =>
+          prev.map((f) =>
+            f.id === files[i].id ? { ...f, status: "error" } : f
+          )
+        );
       }
     }
-
-    setIsProcessing(false);
-  }, [files, isProcessing, base_url]);
-
-  // Start processing when new files are added
-  useEffect(() => {
-    const hasPending = files.some((f) => f.status === "pending");
-    const hasUploading = files.some((f) => f.status === "uploading");
     
-    if (hasPending && !hasUploading && !isProcessing) {
+    setCurrentUploadIndex(-1);
+  }, [files, currentUploadIndex, base_url]);
+
+  useEffect(() => {
+    if (files.length > 0 && currentUploadIndex === -1) {
       processQueue();
     }
-  }, [files, processQueue, isProcessing]);
+  }, [files, currentUploadIndex, processQueue]);
 
-  const handleDragEnter = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
-  };
+  const onDrop = useCallback((acceptedFiles) => {
+    const fileArray = acceptedFiles.map((file) => ({
+      file,
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 11)}-${file.name}`,
+      name: file.name,
+      progress: 0,
+      status: "pending",
+    }));
+    setFiles((prev) => [...prev, ...fileArray]);
+  }, []);
 
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.target === e.currentTarget) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
-
-    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      handleFiles(e.dataTransfer.files);
-      e.dataTransfer.clearData();
-    }
-  };
-
-  const handleClick = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileSelect = (e) => {
-    if (e.target.files && e.target.files.length > 0) {
-      handleFiles(e.target.files);
-      e.target.value = ""; // Reset input to allow selecting same files again
-    }
-  };
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    multiple: true,
+    noClick: false,
+  });
 
   return (
     <>
       <div className="extension-box">
         <div
-          className={`extension-drag-drop ${isDragging ? "dragging" : ""}`}
-          onDragEnter={handleDragEnter}
-          onDragLeave={handleDragLeave}
-          onDragOver={handleDragOver}
-          onDrop={handleDrop}
-          onClick={handleClick}
-          style={{ cursor: "pointer" }}
+          {...getRootProps()}
+          className="extension-drag-drop"
+          style={{
+            border: isDragActive ? "2.5px solid #007AFF" : undefined,
+            cursor: "pointer",
+          }}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            multiple
-            onChange={handleFileSelect}
-            style={{ display: "none" }}
-          />
-          {isDragging
-            ? "Drop your files here"
-            : "Click or drag and drop your Blender extensions here"}
+          <input {...getInputProps()} />
+          Click or drag and drop your Blender extensions here
         </div>
       </div>
 
-      {files.map((fileObj, index) => (
+      {files.map((fileObj) => (
         <AddonUpload
           key={fileObj.id}
           name={fileObj.name}

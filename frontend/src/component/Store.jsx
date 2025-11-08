@@ -16,7 +16,7 @@ const central_store = create((set, get) => ({
   base_url: is_local() ? "http://localhost:4000" : window.location.origin,
   has_fetched: false, // ✅ new flag
   upload_percentage: 0,
-  settings_box: true,
+  settings_box: false,
 
   fetch_data: async () => {
     const base_url = get().base_url;

@@ -19,6 +19,7 @@
     font-size: 0.9rem;
     color: rgba(238, 238, 238, 0.5);
     border-radius: 0.25rem;
+    border: rgba(60, 248, 255, 1);
 }
 
 .addon-upload-container{
