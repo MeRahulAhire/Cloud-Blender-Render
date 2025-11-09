@@ -1,0 +1,61 @@
+
+
+.notification-subscribe{
+    height: 40px;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    background: #ececec;
+    font-family: roboto;
+    font-weight: 500;
+    color: #212121;
+    font-size: 0.95rem;
+    max-width: calc(100% - 2rem);
+    display: flex;
+    align-items: center;
+}
+
+.notification-subscribe img {
+    margin-left: 0.25rem;
+    
+}
+.notification-button-info{
+    color: #f7f7f7;
+    font-family: lato;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    max-width: calc(100% - 2rem);
+}
+.notification-unsubscribe{
+    height: 40px;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    margin-top: 1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    background: #10b981;
+    font-family: roboto;
+    font-weight: 500;
+    color: #212121;
+    font-size: 0.95rem;
+    max-width: calc(100% - 2rem);
+    display: flex;
+    align-items: center;
+}
+.notification-unsubscribe img {
+    margin-left: 0.25rem;
+    
+}
+
+/* #10b981 */
+

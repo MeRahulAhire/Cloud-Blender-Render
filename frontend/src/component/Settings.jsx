@@ -6,6 +6,7 @@ import axios from "axios";
 import { initSocket } from "./Socket";
 import "../style/settings.css"
 import ExtensionUpload from "./ExtensionUpload";
+import Notification from "./Notification";
 const Settings = ({ set_settings_box }) => {
     const [clipboard_select, set_clipboard_select] = useState(false);
     const password_status = central_store((state) => state.password.is_protected);
@@ -124,6 +125,7 @@ const Settings = ({ set_settings_box }) => {
                 </div>
               </div>
             </div>
+            <Notification/>
             <ExtensionUpload/>
             <div className="sb-blender-version-dialogue">
               This app is running on {blender_version}
