@@ -1,69 +1,23 @@
-// import "../style/notification.css"
-// import notification from "../assets/icons/notification.svg"
-// import active_notification from "../assets/icons/notification_active.svg"
-// import notification_sound from "../assets/audio/notification.mp3"
-// import logo from "../assets/icons/cloud-blender-render-logo.svg"
-// import central_store from "./Store";
-// import axios from "axios"
-// export default function Notification() {
-//     const base_url = central_store((state) => state.base_url);
-//   return (
-//     <>
-//     {/* <Subscribe/> */}
-//     {/* <Unsubscribe/> */}
-//     <Notification_button_info/>
-//     </>
-//   )
-// }
-
-// const Subscribe = () => {
-//     return (
-//         <>
-//         <button className="notification-subscribe">
-//             Enable notification <img src={notification} alt="" />
-//         </button>
-        
-//         </>
-//     )
-// }
-// const Unsubscribe = () => {
-//     return (
-//         <>
-//         <button className="notification-unsubscribe">
-//             Notification enabled <img src={active_notification} alt="" />
-//         </button>
-        
-//         </>
-//     )
-// }
-
-
-// const Notification_button_info = () => {
-//     return (
-//         <>
-//         <p className="notification-button-info">
-//             By turning on the notification, you'll be notified when the rendering is over.
-//         </p>
-//         </>
-//     )
-// }
-
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 import "../style/notification.css"
 import notification from "../assets/icons/notification.svg"
 import active_notification from "../assets/icons/notification_active.svg"
 import notification_sound from "../assets/audio/notification.mp3"
-import logo from "../assets/icons/cloud-blender-render-logo.svg"
 import central_store from "./Store"
 import axios from "axios"
 
 const VAPID_PUBLIC_KEY = "BGdqGpTMThGXR1oAau7FddChScYzNwObQZfPNudix3uoSiwurNbx-8WdmLbhMekyalvnXZaV0tzA2kyWYNuoSbA"
 
 export default function Notification() {
-    const base_url = central_store((state) => state.base_url)
-    const [isSubscribed, setIsSubscribed] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [isChecking, setIsChecking] = useState(true)
+    const {
+        isSubscribed,
+        setIsSubscribed,
+        isLoading,
+        setIsLoading,
+        isChecking,
+        setIsChecking,
+        base_url,
+      } = central_store();
 
     useEffect(() => {
         checkSubscriptionStatus()
@@ -124,19 +78,58 @@ export default function Notification() {
         try {
             setIsLoading(true)
 
-            // Request notification permission
-            const permission = await Notification.requestPermission()
-            if (permission !== 'granted') {
-                alert('Notification permission denied')
+            // console.log('🔔 Starting notification subscription...')
+            // console.log('Notification in window:', 'Notification' in window)
+            // console.log('Current permission:', window.Notification?.permission)
+
+            // Check if notifications are supported
+            if (!window.Notification) {
+                alert('This browser does not support notifications')
                 setIsLoading(false)
                 return
             }
 
+            // Request notification permission
+            let permission = window.Notification.permission
+            
+            if (permission === 'default') {
+                // console.log('Requesting notification permission...')
+                
+                try {
+                    // Use window.Notification to ensure we get the right reference
+                    permission = await window.Notification.requestPermission()
+                    // console.log('Permission result:', permission)
+                } catch (e) {
+                    console.error('Error requesting permission:', e)
+                    alert('Failed to request notification permission')
+                    setIsLoading(false)
+                    return
+                }
+            } 
+            
+            // else {
+            //     console.log('Using existing permission:', permission)
+            // }
+
+            // console.log('Final permission value:', permission)
+
+            if (permission !== 'granted') {
+                console.log('❌ Notification permission not granted:', permission)
+                alert(`Notification permission is: ${permission}. Please allow notifications in your browser settings.`)
+                setIsLoading(false)
+                return
+            }
+
+            // console.log('✅ Notification permission granted!')
+
             // Register service worker if not already registered
             let registration
             if ('serviceWorker' in navigator) {
+                // console.log('Registering service worker...')
                 registration = await navigator.serviceWorker.register('/service-worker.js')
+                // console.log('Service worker registered:', registration)
                 await navigator.serviceWorker.ready
+                // console.log('Service worker ready')
             } else {
                 alert('Service workers not supported')
                 setIsLoading(false)
@@ -144,25 +137,31 @@ export default function Notification() {
             }
 
             // Subscribe to push notifications
+            // console.log('Subscribing to push notifications...')
             const subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
             })
+            // console.log('Push subscription created:', subscription)
 
             // Send subscription to backend
             const origin = window.location.origin
+            // console.log('Sending subscription to backend...')
             const response = await axios.post(`${base_url}/activate_push_notification`, {
                 subscription: subscription.toJSON(),
                 origin: origin
             })
+            // console.log('Backend response:', response.data)
 
             if (response.data.success) {
                 setIsSubscribed(true)
-                console.log('✅ Push notification activated')
+                // console.log('✅ Push notification activated successfully!')
+                // alert('Notifications enabled successfully!')
             }
         } catch (error) {
-            console.error('Error subscribing to notifications:', error)
-            alert('Failed to enable notifications. Please try again.')
+            console.error('❌ Error subscribing to notifications:', error)
+            console.error('Error stack:', error.stack)
+            alert(`Failed to enable notifications: ${error.message}`)
         } finally {
             setIsLoading(false)
         }
@@ -187,10 +186,10 @@ export default function Notification() {
                 })
 
                 setIsSubscribed(false)
-                console.log('✅ Push notification deactivated')
+                // console.log('✅ Push notification deactivated')
             }
         } catch (error) {
-            console.error('Error unsubscribing from notifications:', error)
+            // console.error('Error unsubscribing from notifications:', error)
             alert('Failed to disable notifications. Please try again.')
         } finally {
             setIsLoading(false)

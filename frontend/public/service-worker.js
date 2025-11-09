@@ -29,7 +29,7 @@ self.addEventListener('push', function(event) {
     // Show the notification
     const title = 'Cloud Blender Render'
     const options = {
-        body: 'Rendering completed. Please check and download your files.',
+        body: 'Rendering finished. Please check and download your files.',
         icon: '/cloud-blender-render-logo.svg',
         badge: '/cloud-blender-render-logo.svg',
         tag: 'render-complete',

@@ -103,6 +103,7 @@ pub fn render_task(
     });
 
     update(set_render_true).unwrap();
+    let rt_handle = tokio::runtime::Handle::current();
 
     thread::spawn(move || {
         let mut child = Command::new(&blender_bin)
@@ -165,7 +166,9 @@ pub fn render_task(
         }
         println!("Blender exited with status: {:?}", exit_status);
 
-        tokio::spawn(async {
+        
+
+        rt_handle.spawn(async {
             web_push_notification::notify_render_complete().await;
         });
     });

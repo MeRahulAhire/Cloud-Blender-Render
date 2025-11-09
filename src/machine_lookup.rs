@@ -287,8 +287,8 @@ pub fn network_stats(socket: SocketRef) {
 
                 // println!("↓ {:.3} Mbit/s ↑ {:.3} Mbit/s", rx_mbit, tx_mbit); Debug
 
-                if let Err(err) = sock.emit("network_stats", &data) {
-                    eprintln!("Network stats error - {}", err);
+                if let Err(_err) = sock.emit("network_stats", &data) {
+                    // eprintln!("Network stats error - {}", err);
                     break;
                 }
             }

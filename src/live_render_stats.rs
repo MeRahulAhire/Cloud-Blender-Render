@@ -20,8 +20,8 @@ pub fn render_stats_watcher (socket: SocketRef) {
             let parsed:Value = from_str(&payload).unwrap();
             let data = json!({"render_stats" : parsed});
 
-            if let Err(err) = sock.emit("render_stats", &data){
-                eprintln!("render stats error: {:?}", err);
+            if let Err(_err) = sock.emit("render_stats", &data){
+                // eprintln!("render stats error: {:?}", err);
                 break;
             }
         }
