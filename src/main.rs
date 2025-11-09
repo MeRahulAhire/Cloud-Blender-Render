@@ -8,6 +8,7 @@ mod process_blend_file;
 mod render_image_list;
 mod upload_blend_file;
 mod upload_extension_file;
+mod web_push_notification;
 
 use axum::{
     Router,
@@ -156,6 +157,9 @@ async fn main() {
         .route("/render_list", post(render_image_list::get_images_list))
         .route("/create_auth", post(auth::set_auth))
         .route("/delete_auth", post(auth::delete_auth))
+        .route("/activate_push_notification", post(web_push_notification::activate_push_notification))
+        .route("/deactivate_push_notification", post(web_push_notification::deactivate_push_notification))
+        .route("/subscription_status", post(web_push_notification::get_subscription_status))
         .nest_service(
             "/images",
             get_service(ServeDir::new("./output")).layer(SetResponseHeaderLayer::if_not_present(

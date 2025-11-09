@@ -9,6 +9,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU32, Ordering};
 use std::thread;
+use crate::web_push_notification;
 
 static CHILD_PID: AtomicU32 = AtomicU32::new(0);
 
@@ -163,6 +164,10 @@ pub fn render_task(
             eprintln!("Emit error: {:?}", err);
         }
         println!("Blender exited with status: {:?}", exit_status);
+
+        tokio::spawn(async {
+            web_push_notification::notify_render_complete().await;
+        });
     });
 }
 
