@@ -32,7 +32,6 @@ self.addEventListener('push', function(event) {
         body: 'Rendering finished. Please check and download your files.',
         icon: '/cloud-blender-render-logo.svg',
         badge: '/cloud-blender-render-logo.svg',
-        tag: 'render-complete',
         requireInteraction: false,
         data: {
             url: '/'
