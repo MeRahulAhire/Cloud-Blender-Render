@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import "../style/notification.css"
-import notification from "../assets/icons/notification.svg"
+import notification_white from "../assets/icons/notification_white.svg"
 import active_notification from "../assets/icons/notification_active.svg"
 import notification_sound from "../assets/audio/notification.mp3"
 import central_store from "./Store"
@@ -200,7 +200,7 @@ export default function Notification() {
         <>
             {isChecking ? (
                 <button className="notification-subscribe" disabled>
-                    Checking... <img src={notification} alt="" />
+                    Checking... <img src={notification_white} alt="" />
                 </button>
             ) : !isSubscribed ? (
                 <Subscribe onClick={subscribeToNotifications} isLoading={isLoading} />
@@ -220,7 +220,7 @@ const Subscribe = ({ onClick, isLoading }) => {
             disabled={isLoading}
         >
             {isLoading ? 'Loading...' : 'Enable notification'} 
-            <img src={notification} alt="" />
+            <img src={notification_white} alt="" />
         </button>
     )
 }

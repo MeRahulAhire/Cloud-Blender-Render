@@ -10,10 +10,10 @@
     border-radius: 0.25rem;
     border: none;
     cursor: pointer;
-    background: #ececec;
+    background: #3c484f;
     font-family: roboto;
     font-weight: 500;
-    color: #212121;
+    color: #f7f7f7;
     font-size: 0.95rem;
     max-width: calc(100% - 2rem);
     display: flex;
