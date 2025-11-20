@@ -39,8 +39,8 @@ export default function Enginetype() {
   };
   const set_eevee_in_store = () => {
     if (!!blend_file_present && !render_status) {
-      set_engine(`BLENDER_EEVEE_NEXT`);
-      set_engine_query(`-E BLENDER_EEVEE_NEXT`);
+      set_engine(`BLENDER_EEVEE`);
+      set_engine_query(`-E BLENDER_EEVEE`);
     }
   };
 
@@ -83,12 +83,12 @@ export default function Enginetype() {
         <div
           className={`engine-tag-label 
             ${!!blend_file_present ? "" : "dim-opacity"} 
-            ${engine_type === "BLENDER_EEVEE_NEXT" ? "engine-tag-label-toggle" : ""} 
+            ${engine_type === "BLENDER_EEVEE" ? "engine-tag-label-toggle" : ""} 
             ${!!render_status ? "dim-opacity" : ""}
           `}
           onClick={set_eevee_in_store}
         >
-          EEVEE NEXT
+          EEVEE
         </div>
       </div>
       <div className={`cycle-subsection ${!!blend_file_present && engine_type === `CYCLES` ? "" : `dim-opacity`} ${!!render_status ? `dim-opacity` : ``}` }>
