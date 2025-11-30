@@ -62,7 +62,7 @@ RUN wget https://download.blender.org/release/Blender5.0/blender-5.0.0-linux-x64
     rm blender-5.0.0-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
-RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.6.3/Cloud-Blender-Render && \
+RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.6.4/Cloud-Blender-Render && \
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
