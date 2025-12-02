@@ -22,6 +22,8 @@ export default function Fileinput() {
   const base_url = central_store((state) => state.base_url);
   const settings_box = central_store((state) => state.settings_box);
   const [is_dragging, set_is_dragging] = useState(false);
+  const [zip_message, set_zip_message] = useState("");
+  
 
   const onDropRejected = (fileRejections) => {
     set_progress_bar_status(false);
@@ -129,7 +131,8 @@ export default function Fileinput() {
   const onDrop = useCallback(
     async (acceptFiles) => {
       const file = acceptFiles[0];
-      
+      const isZipFile = file.name.toLowerCase().endsWith('.zip');
+
       // Optimize chunk size for Cloudflare tunnel + server processing
       // 10-15MB balances throughput with responsive server confirmations
       let CHUNK_SIZE;
@@ -147,6 +150,7 @@ export default function Fileinput() {
       const TIMEOUT = 60000; // 60 seconds for larger chunks
   
       set_upload_percentage(0);
+      set_zip_message("");
   
       // Track status of each chunk
       const chunkStatus = new Array(totalChunks).fill(null).map((_, index) => ({
@@ -162,6 +166,11 @@ export default function Fileinput() {
         const confirmedChunks = chunkStatus.filter(c => c.status === 'success').length;
         const percentage = Math.round((confirmedChunks * 100) / totalChunks);
         set_upload_percentage(percentage);
+
+        // Show extraction message when zip upload reaches 100%
+        if (isZipFile && percentage > 95) {
+          set_zip_message("Extracting zip file... Please wait");
+        }
       };
   
       const uploadChunk = async (chunkIndex) => {
@@ -247,7 +256,7 @@ export default function Fileinput() {
         if (totalChunks === 1) {
           const responseMessage = chunkStatus[0].response.data;
           if (responseMessage === "Zip file uploaded and extracted successfully") {
-            window.location.reload();
+            fetch_data();
           } else {
             fetch_data();
           }
@@ -287,9 +296,11 @@ export default function Fileinput() {
           console.log("✅ Upload complete:", responseMessage);
           
           if (responseMessage === "Zip file uploaded and extracted successfully") {
-            window.location.reload();
+            fetch_data();
+            set_zip_message("");
           } else {
             fetch_data();
+            set_zip_message("");
           }
         } else {
           // All chunks returned 202 (ACCEPTED) - this might happen on very fast networks
@@ -311,11 +322,11 @@ export default function Fileinput() {
           })));
         }
         
-        set_upload_percentage(0);
         fetch_data();
+        set_upload_percentage(0);
         
         // Optionally show error message to user
-        alert(`Upload failed. ${failedChunks.length} chunks could not be uploaded. Please try again.`);
+        // alert(`Upload failed. ${failedChunks.length} chunks could not be uploaded. Please try again.`);
       }
     },
     [base_url, set_upload_percentage, fetch_data]
@@ -411,6 +422,7 @@ useEffect(() => {
           getInputProps={getInputProps}
           getRootProps={getRootProps}
           progress_bar_status={upload_percentage}
+          zip_message={zip_message}
         />
       )}
     </div>
@@ -433,7 +445,7 @@ const Overlay = () => {
   );
 };
 
-const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
+const Inputbox = ({ getInputProps, getRootProps, progress_bar_status, zip_message }) => {
   return (
     <>
       <div {...getRootProps()} className="cp-inputbox">
@@ -443,7 +455,7 @@ const Inputbox = ({ getInputProps, getRootProps, progress_bar_status }) => {
           <p className="file-upload-label">
             Click or drag and drop your blend or zip file
           </p>
-          {/* <p className="max-size-limit">(Max File size: 20 GB)</p> */}
+          <p className="zip-status">{zip_message}</p>
         </div>
         {
           <div

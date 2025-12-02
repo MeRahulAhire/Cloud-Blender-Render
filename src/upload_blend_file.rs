@@ -156,55 +156,6 @@ pub async fn upload_handler(
 
     // 4. Check if all chunks have been received
     let received_chunks = count_chunks_for_file(&chunks_dir, &file_id);
-    
-    // Debug logging
-    // println!("DEBUG: chunk_index={}, total_chunks={}, received_chunks={}", chunk_index, total_chunks, received_chunks);
-    
-    // Fix: Handle both single chunk (≤5MB) and multi-chunk (>5MB) files
-    // if received_chunks == total_chunks {
-    //     // All chunks received, assemble the file
-    //     let target_path = upload_dir.join(&safe_name);
-        
-    //     match assemble_chunks(&chunks_dir, &file_id, &target_path, total_chunks).await {
-    //         Ok(_) => {
-    //             // Clean up chunk files and session
-    //             cleanup_upload_session(&chunks_dir, &file_id);
-                
-    //             // Update database with success
-    //             let data = json!({
-    //                 "blend_file": {
-    //                     "is_present": true,
-    //                     "file_name": &safe_name,
-    //                 },
-    //             });
-                
-    //             if let Err(e) = update(data) {
-    //                 return (
-    //                     StatusCode::INTERNAL_SERVER_ERROR,
-    //                     format!("Failed to update Redis: {}", e),
-    //                 );
-    //             }
-
-    //             return (
-    //                 StatusCode::OK,
-    //                 "Blend file uploaded successfully".to_string(),
-    //             );
-    //         }
-    //         Err(e) => {
-    //             cleanup_upload_session(&chunks_dir, &file_id);
-    //             return (
-    //                 StatusCode::INTERNAL_SERVER_ERROR,
-    //                 format!("Failed to assemble chunks: {}", e),
-    //             );
-    //         }
-    //     }
-    // } else {
-    //     // More chunks expected - this should only happen for multi-chunk files
-    //     return (
-    //         StatusCode::ACCEPTED,
-    //         format!("Chunk {} of {} received", chunk_index + 1, total_chunks),
-    //     );
-    // }
     if received_chunks == total_chunks {
         // All chunks received, assemble the file
         let target_path = upload_dir.join(&safe_name);
