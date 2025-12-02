@@ -9,7 +9,7 @@ apt-get clean
 # Reinstall ImageMagick with HDRI and OpenEXR support
 apt-get update
 apt-get install -y imagemagick libmagickcore-6.q16hdri-6-extra libopenexr-dev
-apt-get upgrade -y
+# apt-get upgrade -y
 
 # Verify EXR support
 if identify -list format | grep -qi exr; then
