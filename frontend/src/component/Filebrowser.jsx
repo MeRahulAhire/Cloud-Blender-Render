@@ -133,7 +133,7 @@ export default function Filebrowser() {
           const dir_handle = await window.showDirectoryPicker();
           await dir_handle.requestPermission({ mode: "readwrite" });
 
-          const concurrency_limit = 1;
+          const concurrency_limit = 10;
           let completed_files = 0;
 
           const limit = pLimit(concurrency_limit);
