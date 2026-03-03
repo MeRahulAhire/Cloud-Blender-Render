@@ -23,7 +23,7 @@ This project will only run on Chrome or Chromium based browsers like Chrome, Edg
 ### How to deploy
 **1. Secure and recommended approach**
 
-<a href="https://console.runpod.io/deploy?template=ada1xq99pb&ref=g168bg1u" target="_blank"><img width="200" height="41" alt="Asset 5" src="https://github.com/user-attachments/assets/ffff5850-dbca-492b-8832-0dbe6295bbd7" /></a>
+<a href="https://get.runpod.io/tutbrkvo0y9g" target="_blank"><img width="200" height="41" alt="Asset 5" src="https://github.com/user-attachments/assets/ffff5850-dbca-492b-8832-0dbe6295bbd7" /></a>
 
 Runpod is a GPU cloud provider where you can get all kinds of GPUs, right from RTX 3070 to RTX 5090 and AI/ML specific GPUs. Clicking on the above button will direct you towards Runpod. Once you sign up, this app will be automatically selected. Select the GPU of your choice either from the secure or community cloud and your instance will be ready in 20-30 seconds. Runpod also provides HTTPS connection out of the box i.e. your connection will be encrypted and secure. For more information, please watch the above video demo.
 
@@ -59,18 +59,3 @@ There are an estimated 2–4 million Blender users worldwide, yet less than 0.1%
  </a>
 
  
-### This project is licensed under Apache 2.0 
-
-Copyright 2025 Rahul Ahire
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-[http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
