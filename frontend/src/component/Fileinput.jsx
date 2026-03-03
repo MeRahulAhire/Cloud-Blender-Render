@@ -9,397 +9,363 @@ import central_store from "./Store";
 import axios from "axios";
 import pLimit from "p-limit";
 
+// ─── Speed tracker ─────────────────────────────────────────────────────────────
+// 15s window so random bursts don't violently change concurrency
+
+function createSpeedTracker(window_ms = 15000) {
+  const samples = []; // { t: DOMHighResTimeStamp, bytes: number }
+
+  return {
+    recordBytes(bytes) {
+      const now = performance.now();
+      samples.push({ t: now, bytes });
+      while (samples.length && now - samples[0].t > window_ms) {
+        samples.shift();
+      }
+    },
+
+    getSpeedMBps() {
+      if (samples.length < 2) return 0;
+      const now    = performance.now();
+      const recent = samples.filter((s) => s.t >= now - window_ms);
+      if (recent.length < 2) return 0;
+
+      const totalBytes = recent.reduce((sum, s) => sum + s.bytes, 0);
+      const elapsed_ms = recent[recent.length - 1].t - recent[0].t;
+      if (elapsed_ms === 0) return 0;
+
+      return (totalBytes / elapsed_ms) / 1024; // bytes/ms → MB/s
+    },
+
+    // On retry: inject zero-speed samples so the average drops and concurrency cools
+    penalise() {
+      const now = performance.now();
+      for (let i = 0; i < 5; i++) {
+        samples.push({ t: now - i * 100, bytes: 0 });
+      }
+    },
+  };
+}
+
+// ─── Concurrency mapping ───────────────────────────────────────────────────────
+// < 1 MB/s → 1, 1 MB/s → 1, 2 → 2 ... 5 → 5, 6+ → 6
+
+function getConcurrency(speedMBps) {
+  if (speedMBps < 1)  return 1;
+  if (speedMBps >= 6) return 6;
+  return Math.floor(speedMBps);
+}
+
+// ─── Component ─────────────────────────────────────────────────────────────────
+
 export default function Fileinput() {
-  const fetch_data = central_store((state) => state.fetch_data);
-  const blend_file = central_store((state) => state.blend_file);
-  const upload_percentage = central_store((state) => state.upload_percentage);
-  const set_upload_percentage = central_store(
-    (state) => state.set_upload_percentage
-  );
-  const render_status = central_store(
-    (state) => state.render_status.is_rendering
-  );
-  const base_url = central_store((state) => state.base_url);
-  const settings_box = central_store((state) => state.settings_box);
+  const fetch_data            = central_store((state) => state.fetch_data);
+  const blend_file            = central_store((state) => state.blend_file);
+  const upload_percentage     = central_store((state) => state.upload_percentage);
+  const set_upload_percentage = central_store((state) => state.set_upload_percentage);
+  const render_status         = central_store((state) => state.render_status.is_rendering);
+  const base_url              = central_store((state) => state.base_url);
+  const settings_box          = central_store((state) => state.settings_box);
+
   const [is_dragging, set_is_dragging] = useState(false);
   const [zip_message, set_zip_message] = useState("");
-  
+  const [speed_label, set_speed_label] = useState(""); // "2.4 MB/s · 2 parallel"
 
   const onDropRejected = (fileRejections) => {
-    set_progress_bar_status(false);
-    set_file_btn(false);
     fileRejections.forEach((rejection) => {
       console.error("Rejected file:", rejection.file.name);
-      rejection.errors.forEach((e) => {
-        console.error(e.code, e.message);
-      });
+      rejection.errors.forEach((e) => console.error(e.code, e.message));
     });
   };
 
-
-  // const onDrop = useCallback(
-  //   async (acceptFiles) => {
-  //     const file = acceptFiles[0];
-  //     const CHUNK_SIZE = 5 * 1024 * 1024;
-  //     const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-  //     const fileId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
-  
-  //     set_upload_percentage(0);
-  
-  //     try {
-  //       // First, send chunk 0 to establish session
-  //       const firstChunk = file.slice(0, Math.min(CHUNK_SIZE, file.size));
-  //       const firstFormData = new FormData();
-  //       firstFormData.append("file", firstChunk);
-  //       firstFormData.append("chunk_index", "0");
-  //       firstFormData.append("total_chunks", totalChunks.toString());
-  //       firstFormData.append("file_name", file.name);
-  //       firstFormData.append("file_id", fileId);
-  
-  //       const firstResponse = await axios.post(`${base_url}/upload_blend_file`, firstFormData, {
-  //         headers: { "Content-Type": "multipart/form-data" },
-  //         withCredentials: true,
-  //       });
-  
-  //       let uploadedChunks = 1;
-  //       set_upload_percentage(Math.round((1 * 100) / totalChunks));
-  
-  //       // If only one chunk, handle the response
-  //       if (totalChunks === 1) {
-  //         const responseMessage = firstResponse.data;
-          
-  //         // Check if it's a zip file that was extracted
-  //         if (responseMessage === "Zip file uploaded and extracted successfully") {
-  //           window.location.reload();
-  //         } else {
-  //           fetch_data();
-  //         }
-  //         return;
-  //       }
-  
-  //       // Now send remaining chunks in parallel
-  //       const limit = pLimit(10);
-  //       const remainingPromises = Array.from({ length: totalChunks - 1 }, (_, i) => {
-  //         const chunkIndex = i + 1;
-  //         return limit(async () => {
-  //           const start = chunkIndex * CHUNK_SIZE;
-  //           const end = Math.min(start + CHUNK_SIZE, file.size);
-  //           const chunk = file.slice(start, end);
-  
-  //           const formData = new FormData();
-  //           formData.append("file", chunk);
-  //           formData.append("chunk_index", chunkIndex.toString());
-  //           formData.append("total_chunks", totalChunks.toString());
-  //           formData.append("file_name", file.name);
-  //           formData.append("file_id", fileId);
-  
-  //           const response = await axios.post(`${base_url}/upload_blend_file`, formData, {
-  //             headers: { "Content-Type": "multipart/form-data" },
-  //             withCredentials: true,
-  //           });
-  
-  //           uploadedChunks++;
-  //           const percentage = Math.round((uploadedChunks * 100) / totalChunks);
-  //           set_upload_percentage(percentage);
-  
-  //           return response;
-  //         });
-  //       });
-  
-  //       const responses = await Promise.all(remainingPromises);
-        
-  //       // Get the last response (which will be the final chunk that triggers assembly)
-  //       const lastResponse = responses[responses.length - 1];
-  //       const responseMessage = lastResponse.data;
-  
-  //       // Check if it's a zip file that was extracted
-  //       if (responseMessage === "Zip file uploaded and extracted successfully") {
-  //         window.location.reload();
-  //       } else {
-  //         fetch_data();
-  //       }
-  
-  //     } catch (error) {
-  //       console.error("❌ Upload failed:", error);
-  //       set_upload_percentage(0);
-  //       fetch_data();
-  //     }
-  //   },
-  //   [base_url, set_upload_percentage, fetch_data]
-  // );
-
   const onDrop = useCallback(
     async (acceptFiles) => {
-      const file = acceptFiles[0];
-      const isZipFile = file.name.toLowerCase().endsWith('.zip');
+      const file      = acceptFiles[0];
+      const isZipFile = file.name.toLowerCase().endsWith(".zip");
 
-      // Optimize chunk size for Cloudflare tunnel + server processing
-      // 10-15MB balances throughput with responsive server confirmations
       let CHUNK_SIZE;
-      if (file.size < 50 * 1024 * 1024) { // < 50MB
-        CHUNK_SIZE = 5 * 1024 * 1024; // 5MB chunks
-      } else if (file.size < 500 * 1024 * 1024) { // < 500MB
-        CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks - sweet spot
-      } else {
-        CHUNK_SIZE = 15 * 1024 * 1024; // 15MB chunks for large files
-      }
-      
+      if      (file.size < 50  * 1024 * 1024)  CHUNK_SIZE = 5  * 1024 * 1024;
+      else if (file.size < 500 * 1024 * 1024)  CHUNK_SIZE = 10 * 1024 * 1024;
+      else                                       CHUNK_SIZE = 15 * 1024 * 1024;
+
       const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
-      const fileId = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
+      const fileId      = `${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
       const MAX_RETRIES = 3;
-      const TIMEOUT = 60000; // 60 seconds for larger chunks
-  
+
       set_upload_percentage(0);
       set_zip_message("");
-  
-      // Track status of each chunk
-      const chunkStatus = new Array(totalChunks).fill(null).map((_, index) => ({
-        index,
-        status: 'pending', // pending, uploading, success, failed
-        retries: 0,
-        response: null,
-      }));
-  
-      // Calculate and update overall progress based on server confirmations only
-      const updateProgress = () => {
-        // Only count chunks that have received 202 or 200 response from server
-        const confirmedChunks = chunkStatus.filter(c => c.status === 'success').length;
-        const percentage = Math.round((confirmedChunks * 100) / totalChunks);
-        set_upload_percentage(percentage);
+      set_speed_label("");
 
-        // Show extraction message when zip upload reaches 100%
-        if (isZipFile && percentage > 95) {
+      // ── Chunk state table ───────────────────────────────────────────────────
+      const chunkStatus = Array.from({ length: totalChunks }, (_, index) => ({
+        index,
+        status:   "pending",
+        retries:  0,
+        response: null,
+        inFlight: 0,  // bytes currently in-flight for this slot
+      }));
+
+      // ── Byte-accurate progress ──────────────────────────────────────────────
+      const updateProgress = () => {
+        const confirmedBytes = chunkStatus
+          .filter((c) => c.status === "success")
+          .length * CHUNK_SIZE;
+        const inFlightBytes = chunkStatus.reduce((sum, c) => sum + c.inFlight, 0);
+        const pct = Math.min(
+          99,
+          Math.round(((confirmedBytes + inFlightBytes) * 100) / file.size)
+        );
+        set_upload_percentage(pct);
+
+        if (isZipFile && pct > 95) {
           set_zip_message("Extracting zip file... Please wait");
         }
       };
-  
+
+      // ── Speed tracker + limiter (created once per upload) ──────────────────
+      const tracker            = createSpeedTracker(15000);
+      let   currentConcurrency = 1;
+      let   limiter            = pLimit(1); // always start at 1
+
+      const syncLimiter = () => {
+        const speedMBps = tracker.getSpeedMBps();
+        const desired   = getConcurrency(speedMBps);
+
+        if (desired !== currentConcurrency) {
+          console.log(
+            `[upload] ${speedMBps.toFixed(2)} MB/s → concurrency ${currentConcurrency} → ${desired}`
+          );
+          currentConcurrency = desired;
+          limiter = pLimit(desired);
+          // Note: tasks already in-flight under the old limiter complete normally.
+          // New tasks scheduled after this point pick up the new limit.
+        }
+
+        if (speedMBps > 0) {
+          set_speed_label(`${speedMBps.toFixed(2)} MB/s`);
+        }
+      };
+
+      // ── Single chunk upload ─────────────────────────────────────────────────
       const uploadChunk = async (chunkIndex) => {
-        const start = chunkIndex * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = file.slice(start, end);
-  
+        const start      = chunkIndex * CHUNK_SIZE;
+        const end        = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk      = file.slice(start, end);
+        const chunkBytes = end - start;
+
         const formData = new FormData();
-        formData.append("file", chunk);
-        formData.append("chunk_index", chunkIndex.toString());
+        formData.append("file",         chunk);
+        formData.append("chunk_index",  chunkIndex.toString());
         formData.append("total_chunks", totalChunks.toString());
-        formData.append("file_name", file.name);
-        formData.append("file_id", fileId);
-  
-        chunkStatus[chunkIndex].status = 'uploading';
-  
+        formData.append("file_name",    file.name);
+        formData.append("file_id",      fileId);
+
+        chunkStatus[chunkIndex].status   = "uploading";
+        chunkStatus[chunkIndex].inFlight = 0;
+
+        // Adaptive timeout: 3× expected duration at current speed, 90s floor.
+        // At 100 KB/s a 5MB chunk takes ~50s — the 90s floor keeps it safe.
+        const speedBytesPerMs = Math.max(
+          (tracker.getSpeedMBps() * 1024 * 1024) / 1000,
+          500 / 1000  // absolute floor: 500 B/s
+        );
+        const adaptTimeout = Math.max(90_000, (chunkBytes / speedBytesPerMs) * 3);
+
+        let prevLoaded = 0;
+
         try {
           const response = await axios.post(
-            `${base_url}/upload_blend_file`, 
-            formData, 
+            `${base_url}/upload_blend_file`,
+            formData,
             {
-              headers: { "Content-Type": "multipart/form-data" },
+              headers:         { "Content-Type": "multipart/form-data" },
               withCredentials: true,
-              timeout: TIMEOUT,
+              timeout:         adaptTimeout,
+              onUploadProgress: (evt) => {
+                if (!evt.lengthComputable) return;
+
+                // Record only the delta since the last tick — avoids double-counting
+                const delta = evt.loaded - prevLoaded;
+                prevLoaded  = evt.loaded;
+
+                tracker.recordBytes(delta);
+                syncLimiter();
+
+                chunkStatus[chunkIndex].inFlight = evt.loaded;
+                updateProgress();
+              },
             }
           );
-  
-          // Mark as success only when server confirms receipt (202 or 200)
-          chunkStatus[chunkIndex].status = 'success';
+
+          chunkStatus[chunkIndex].status   = "success";
           chunkStatus[chunkIndex].response = response;
-          
-          // Update progress after server confirmation
+          chunkStatus[chunkIndex].inFlight = 0;
           updateProgress();
-  
+
           return response;
         } catch (error) {
           console.error(`❌ Chunk ${chunkIndex} failed:`, error.message);
-          chunkStatus[chunkIndex].status = 'failed';
+          chunkStatus[chunkIndex].status   = "failed";
+          chunkStatus[chunkIndex].inFlight = 0;
           chunkStatus[chunkIndex].retries++;
           updateProgress();
           throw error;
         }
       };
-  
+
+      // ── Retry wrapper ───────────────────────────────────────────────────────
       const uploadChunkWithRetry = async (chunkIndex) => {
         let lastError;
-        
+
         for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
           try {
             if (attempt > 0) {
               console.log(`🔄 Retrying chunk ${chunkIndex}, attempt ${attempt}/${MAX_RETRIES}`);
-              // Exponential backoff: 1s, 2s, 4s
-              await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, attempt - 1)));
+
+              // Penalise speed → syncLimiter will drop concurrency toward 1
+              tracker.penalise();
+              syncLimiter();
+
+              // Backoff: 3s → 6s → 12s (better for mobile than 1/2/4s)
+              await new Promise((r) =>
+                setTimeout(r, 3000 * Math.pow(2, attempt - 1))
+              );
             }
-            
+
             return await uploadChunk(chunkIndex);
           } catch (error) {
             lastError = error;
-            
-            // Don't retry on certain errors (e.g., 400, 415)
+
             if (error.response?.status === 400 || error.response?.status === 415) {
-              console.error(`❌ Non-retryable error for chunk ${chunkIndex}:`, error.response.status);
-              throw error;
+              throw error; // hard fail, no retry
             }
-            
+
             if (attempt === MAX_RETRIES) {
-              console.error(`❌ Chunk ${chunkIndex} failed after ${MAX_RETRIES} retries`);
+              console.error(`❌ Chunk ${chunkIndex} exhausted retries`);
               throw error;
             }
           }
         }
-        
+
         throw lastError;
       };
-  
+
+      // ── Orchestration ───────────────────────────────────────────────────────
       try {
-        // Step 1: Upload chunk 0 FIRST to establish session (backend requirement)
-        // Backend creates session metadata on chunk 0 and validates it for other chunks
-        console.log("📤 Uploading chunk 0 to establish session...");
+        // Chunk 0 always sequential — establishes the server-side session
+        console.log("📤 Chunk 0 → establishing session...");
         await uploadChunkWithRetry(0);
-  
-        // If only one chunk, we're done
+
         if (totalChunks === 1) {
-          const responseMessage = chunkStatus[0].response.data;
-          if (responseMessage === "Zip file uploaded and extracted successfully") {
-            fetch_data();
-          } else {
-            fetch_data();
-          }
+          set_upload_percentage(100);
+          set_speed_label("");
+          fetch_data();
           return;
         }
-  
-        // Step 2: Upload remaining chunks with controlled concurrency
-        // Max 6 concurrent uploads, but start next chunk as soon as any completes
-        console.log(`📤 Uploading ${totalChunks - 1} remaining chunks (max 6 concurrent)...`);
-        
-        const limit = pLimit(6);
-        
-        const remainingPromises = Array.from({ length: totalChunks - 1 }, (_, i) => {
-          const chunkIndex = i + 1;
-          return limit(() => uploadChunkWithRetry(chunkIndex));
-        });
-  
-        await Promise.all(remainingPromises);
-  
-        // Step 3: Verify all chunks were successful
-        const failedChunks = chunkStatus.filter(c => c.status !== 'success');
-        
-        if (failedChunks.length > 0) {
-          console.error("❌ Some chunks failed:", failedChunks.map(c => c.index));
-          throw new Error(`${failedChunks.length} chunks failed to upload`);
-        }
-  
-        console.log("✅ All chunks uploaded successfully");
-  
-        // Step 4: Find the final completion response (status 200)
-        const completionResponse = chunkStatus.find(
-          c => c.response?.status === 200
-        )?.response;
-  
-        if (completionResponse) {
-          const responseMessage = completionResponse.data;
-          console.log("✅ Upload complete:", responseMessage);
-          
-          if (responseMessage === "Zip file uploaded and extracted successfully") {
-            fetch_data();
-            set_zip_message("");
-          } else {
-            fetch_data();
-            set_zip_message("");
+
+        console.log(`📤 Remaining ${totalChunks - 1} chunks (adaptive concurrency)...`);
+
+        // Each task closes over `limiter` by reference. When syncLimiter rebuilds
+        // it, the NEXT task to be scheduled picks up the new limit automatically.
+        const remainingPromises = Array.from(
+          { length: totalChunks - 1 },
+          (_, i) => {
+            const chunkIndex = i + 1;
+            return (() => limiter(() => uploadChunkWithRetry(chunkIndex)))();
           }
+        );
+
+        await Promise.all(remainingPromises);
+
+        const failedChunks = chunkStatus.filter((c) => c.status !== "success");
+        if (failedChunks.length > 0) {
+          throw new Error(`${failedChunks.length} chunks failed`);
+        }
+
+        console.log("✅ All chunks uploaded");
+        set_upload_percentage(100);
+        set_speed_label("");
+
+        const completionResponse = chunkStatus.find(
+          (c) => c.response?.status === 200
+        )?.response;
+
+        if (completionResponse) {
+          const msg = completionResponse.data;
+          console.log("✅ Server response:", msg);
+          if (isZipFile) set_zip_message("Extracting zip file... Please wait");
+          fetch_data();
+          set_zip_message("");
         } else {
-          // All chunks returned 202 (ACCEPTED) - this might happen on very fast networks
-          // where the last chunk hasn't been processed yet. Wait a bit and fetch data.
-          console.log("⏳ All chunks accepted, waiting for server processing...");
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          console.log("⏳ Waiting for server assembly...");
+          await new Promise((r) => setTimeout(r, 1000));
           fetch_data();
         }
-  
       } catch (error) {
         console.error("❌ Upload failed:", error);
-        
-        // Show detailed error information
-        const failedChunks = chunkStatus.filter(c => c.status === 'failed');
-        if (failedChunks.length > 0) {
-          console.error("Failed chunks:", failedChunks.map(c => ({
-            index: c.index,
-            retries: c.retries
-          })));
-        }
-        
-        fetch_data();
         set_upload_percentage(0);
-        
-        // Optionally show error message to user
-        // alert(`Upload failed. ${failedChunks.length} chunks could not be uploaded. Please try again.`);
+        set_speed_label("");
+        fetch_data();
       }
     },
     [base_url, set_upload_percentage, fetch_data]
   );
 
+  // ── Dropzone ────────────────────────────────────────────────────────────────
 
+  const { getRootProps, getInputProps } = useDropzone({
+    onDrop,
+    onDropRejected,
+    multiple: false,
+    accept: {
+      "application/x-blender": [".blend"],
+      "application/zip":       [".zip"],
+    },
+    disabled: !!settings_box || !!blend_file.is_present,
+    noClick:  !!settings_box || !!blend_file.is_present,
+    noDrag:   !!settings_box || !!blend_file.is_present,
+  });
 
-const { acceptFiles, getRootProps, getInputProps } = useDropzone({
-  
-  onDrop,
-  onDropRejected,
-  multiple: false,
-  accept: {
-    "application/x-blender": [".blend"],
-    "application/zip": [".zip"],
-  },
-  disabled: !!settings_box || !!blend_file.is_present, 
-  noClick: !!settings_box || !!blend_file.is_present, 
-  noDrag: !!settings_box || !!blend_file.is_present, 
-});
+  // ── Global drag/drop listeners ──────────────────────────────────────────────
 
-useEffect(() => {
-  const handle_drag_enter = (e) => {
-    e.preventDefault();
-    
-    // Only set dragging state if conditions allow upload
-    if (!settings_box && !blend_file.is_present) {
-      set_is_dragging(true);
-    }
-  };
-
-  const handle_drag_leave = (e) => {
-    e.preventDefault();
-
-    if (e.relatedTarget === null) {
+  useEffect(() => {
+    const handle_drag_enter = (e) => {
+      e.preventDefault();
+      if (!settings_box && !blend_file.is_present) set_is_dragging(true);
+    };
+    const handle_drag_leave = (e) => {
+      e.preventDefault();
+      if (e.relatedTarget === null) set_is_dragging(false);
+    };
+    const handle_drag_over = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+    };
+    const handle_drop = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
       set_is_dragging(false);
-    }
-  };
+      if (settings_box || blend_file.is_present) return;
+      if (e.dataTransfer?.files?.length > 0) {
+        onDrop([e.dataTransfer.files[0]]);
+        e.dataTransfer.clearData();
+      }
+    };
 
-  const handle_drag_over = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
+    window.addEventListener("dragenter", handle_drag_enter);
+    window.addEventListener("dragleave", handle_drag_leave);
+    window.addEventListener("dragover",  handle_drag_over);
+    window.addEventListener("drop",      handle_drop);
 
-  const handle_drop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    set_is_dragging(false);
+    return () => {
+      window.removeEventListener("dragenter", handle_drag_enter);
+      window.removeEventListener("dragleave", handle_drag_leave);
+      window.removeEventListener("dragover",  handle_drag_over);
+      window.removeEventListener("drop",      handle_drop);
+    };
+  }, [onDrop, settings_box, blend_file.is_present]);
 
-    // Check conditions before allowing drop
-    if (settings_box || blend_file.is_present) {
-      return; // Don't process the drop if modal is open or file exists
-    }
-
-    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      const droppedFile = e.dataTransfer.files[0]; // Only use the first file
-      onDrop([droppedFile]);
-      e.dataTransfer.clearData();
-    }
-  };
-
-  window.addEventListener("dragenter", handle_drag_enter);
-  window.addEventListener("dragleave", handle_drag_leave);
-  window.addEventListener("dragover", handle_drag_over);
-  window.addEventListener("drop", handle_drop);
-
-  return () => {
-    window.removeEventListener("dragenter", handle_drag_enter);
-    window.removeEventListener("dragleave", handle_drag_leave);
-    window.removeEventListener("dragover", handle_drag_over);
-    window.removeEventListener("drop", handle_drop);
-  };
-}, [onDrop, settings_box, blend_file.is_present]); // Add dependencies here
+  // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div
@@ -407,7 +373,7 @@ useEffect(() => {
         !!blend_file.is_present && "file-input-parent-toggle"
       }`}
     >
-      {!!is_dragging && !!!settings_box && !blend_file.is_present && <Overlay />}
+      {!!is_dragging && !settings_box && !blend_file.is_present && <Overlay />}
 
       {!!blend_file.is_present ? (
         <FileBtn
@@ -423,50 +389,51 @@ useEffect(() => {
           getRootProps={getRootProps}
           progress_bar_status={upload_percentage}
           zip_message={zip_message}
+          speed_label={speed_label}
         />
       )}
     </div>
   );
 }
 
-const Overlay = () => {
-  return createPortal(
-    <>
-      <div className="file-drag-drop-overlay">
-        <div className="dragdrop-border">
-          <div className="dragdrop-infocontext">
-            <img src={cloudBlenderLogo} alt="logo-svg" />
-            <p>Drag and drop your blend or zip file here</p>
-          </div>
+// ─── Sub-components ─────────────────────────────────────────────────────────────
+
+const Overlay = () =>
+  createPortal(
+    <div className="file-drag-drop-overlay">
+      <div className="dragdrop-border">
+        <div className="dragdrop-infocontext">
+          <img src={cloudBlenderLogo} alt="logo-svg" />
+          <p>Drag and drop your blend or zip file here</p>
         </div>
       </div>
-    </>,
+    </div>,
     document.getElementById("dragdrop")
   );
-};
 
-const Inputbox = ({ getInputProps, getRootProps, progress_bar_status, zip_message }) => {
-  return (
-    <>
-      <div {...getRootProps()} className="cp-inputbox">
-        <input {...getInputProps()} />
-        <div className="inputbox-item-container">
-          <img src={addFile} draggable="false" alt="file-upload-icon" />
-          <p className="file-upload-label">
-            Click or drag and drop your blend or zip file
-          </p>
-          <p className="zip-status">{zip_message}</p>
-        </div>
-        {
-          <div
-            className="upload-progressbar"
-            style={{ width: `${progress_bar_status}%` }}
-          ></div>
-        }
-      </div>
-    </>
-  );
-};
+const Inputbox = ({
+  getInputProps,
+  getRootProps,
+  progress_bar_status,
+  zip_message,
+  speed_label,
+}) => (
+  <div {...getRootProps()} className="cp-inputbox">
+    <input {...getInputProps()} />
+    <div className="inputbox-item-container">
+      <img src={addFile} draggable="false" alt="file-upload-icon" />
+      <p className="file-upload-label">
+        Click or drag and drop your blend or zip file
+      </p>
+      {/* zip_message takes priority (extraction phase), otherwise show speed */}
+      <p className="zip-status">{zip_message || speed_label}</p>
+    </div>
+    <div
+      className="upload-progressbar"
+      style={{ width: `${progress_bar_status}%` }}
+    />
+  </div>
+);
 
 const FileBtn = ({
   blend_file_name,
@@ -477,24 +444,12 @@ const FileBtn = ({
 }) => {
   const [hover_state, set_hover_state] = useState(false);
 
-  const hover_enter = () => {
-    if (render_status === false) {
-      set_hover_state(true);
-    }
-  };
-
-  const hover_leave = () => {
-    if (render_status === false) {
-      set_hover_state(false);
-    }
-  };
   const delete_blend_file = () => {
-    if (render_status === false) {
+    if (!render_status) {
       axios
-        .post(`${base_url}/delete_blend_file`, {}, {withCredentials : true})
+        .post(`${base_url}/delete_blend_file`, {}, { withCredentials: true })
         .then((res) => {
           if (res.status === 200) {
-            // console.log(upload_percentage)
             set_upload_percentage(0);
             fetch_data();
           }
@@ -507,23 +462,16 @@ const FileBtn = ({
   };
 
   return (
-    <>
-      <>
-        <button
-          className={`file-button-parent ${
-            !!render_status ? `dim-opacity` : ""
-          }`}
-          onMouseEnter={hover_enter}
-          onMouseLeave={hover_leave}
-          onClick={delete_blend_file}
-        >
-          {hover_state ? (
-            <img src={deleteIcon} alt="trash-icon" />
-          ) : (
-            <p>{blend_file_name}</p>
-          )}
-        </button>
-      </>
-    </>
+    <button
+      className={`file-button-parent ${!!render_status ? "dim-opacity" : ""}`}
+      onMouseEnter={() => { if (!render_status) set_hover_state(true);  }}
+      onMouseLeave={() => { if (!render_status) set_hover_state(false); }}
+      onClick={delete_blend_file}
+    >
+      {hover_state
+        ? <img src={deleteIcon} alt="trash-icon" />
+        : <p>{blend_file_name}</p>
+      }
+    </button>
   );
 };
