@@ -1,0 +1,48 @@
+.del-ren-frames-parent{
+    margin-top: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
+    width: calc(100% - 2rem);
+}
+
+.del-ren-frame-btn   {
+    height: 40px;
+    
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 0.25rem;
+    border: none;
+    cursor: pointer;
+    background: #2f393e;
+    font-family: roboto;
+    font-weight: 500;
+    color: #f7f7f7;
+    font-size: 0.95rem;
+    max-width: calc(100% - 2rem);
+    display: flex;
+    align-items: center;
+}
+.del-ren-frame-btn img {
+    margin-left: 0.25rem;
+}
+.del-ren-frames-btn-info{
+    color: #f7f7f7;
+    font-family: lato;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+.notification-button-info {
+    color: #f7f7f7;
+    font-family: lato;
+    font-size: 0.9rem;
+    
+    margin-left: 1rem;
+    margin-right: 1rem;
+    max-width: calc(100% - 2rem);
+}
+
+.del-ren-frame-btn-cant-delete{
+    cursor: not-allowed;
+    opacity: 0.5;
+}

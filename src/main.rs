@@ -9,6 +9,7 @@ mod render_image_list;
 mod upload_blend_file;
 mod upload_extension_file;
 mod web_push_notification;
+mod delete_rendered_frames;
 
 use axum::{
     Router,
@@ -151,6 +152,10 @@ async fn main() {
         .route(
             "/delete_blend_file",
             post(delete_blend_file::delete_handler),
+        )
+        .route(
+            "/delete_rendered_frames",
+            post(delete_rendered_frames::delete_rendered_frames_handler),
         )
         .route("/get_db", post(db::get_app_state::get_db))
         .route("/stop_render", post(process_blend_file::stop_render))
