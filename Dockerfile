@@ -56,10 +56,10 @@ RUN wget https://dragonflydb.gateway.scarf.sh/latest/dragonfly-x86_64.tar.gz && 
     rm dragonfly-x86_64.tar.gz
 
 # Blender CLI
-RUN wget https://download.blender.org/release/Blender5.0/blender-5.0.1-linux-x64.tar.xz && \
+RUN wget https://download.blender.org/release/Blender5.1/blender-5.1.0-linux-x64.tar.xz && \
     mkdir /app/blender && \
-    tar xf blender-5.0.1-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
-    rm blender-5.0.1-linux-x64.tar.xz
+    tar xf blender-5.1.0-linux-x64.tar.xz -C /app/blender --strip-components 1 && \
+    rm blender-5.1.0-linux-x64.tar.xz
 
 # Cloud-Blender-Render binary
 RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/1.6.8/Cloud-Blender-Render && \
