@@ -61,6 +61,22 @@ else
     echo "watch_extensions.sh already exists in /workspace"
 fi
 
+if [ ! -e "/workspace/cloudflared" ]; then
+    echo "Copying cloudflared from /app to /workspace"
+    cp "/app/cloudflared" "/workspace/"
+    chmod +x "/workspace/cloudflared"
+else
+    echo "cloudflared already exists in /workspace"
+fi
+
+if [ ! -e "/workspace/cloudflared.sh" ]; then
+    echo "Copying cloudflared.sh from /app to /workspace"
+    cp "/app/cloudflared.sh" "/workspace/"
+    chmod +x "/workspace/cloudflared.sh"
+else
+    echo "cloudflared.sh already exists in /workspace"
+fi
+
 # Set env variables including Node.js
 export PATH="/workspace/blender:/root/.nvm/versions/node/v22.19.0/bin:$PATH"
 export LD_LIBRARY_PATH="/usr/local/cuda/lib64:/usr/lib/x86_64-linux-gnu"
@@ -100,6 +116,10 @@ jupyter lab \
 # Start Extension Watcher in background
 echo "Starting Blender Extension Watcher..."
 /workspace/watch_extensions.sh &
+
+# Start Cloudflare Tunnels in background
+echo "Starting Cloudflare Tunnels..."
+/workspace/cloudflared.sh &
 
 # Give services time to start
 sleep 5

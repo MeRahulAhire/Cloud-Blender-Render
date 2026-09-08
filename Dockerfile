@@ -66,18 +66,25 @@ RUN wget https://github.com/MeRahulAhire/Cloud-Blender-Render/releases/download/
     chmod u+x Cloud-Blender-Render && \
     mv Cloud-Blender-Render /app/
 
+# cloudflared binary
+RUN wget https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -O /app/cloudflared && \
+    chmod u+x /app/cloudflared    
+
 # Copy Python script for Cycles OptiX denoise logic
 COPY cycles_optix_denoise_logic.py /app/
 
 # Copy extension watcher script
 COPY watch_extensions.sh /app/
 
+# Copy cloudflared tunnel script
+COPY cloudflared.sh /app/
+
 # Copy start.sh and make executable
 COPY start.sh /start.sh
 RUN chmod +x /start.sh
 
 # Expose ports
-EXPOSE 8888 6379 4000
+EXPOSE 8888 6379 4000 9000
 
 # Entrypoint
 ENTRYPOINT ["/start.sh"]
